@@ -104,7 +104,8 @@ com.company.project/
 - **Use Cases**: `*UseCase implements *InputPort`
 - **Commands**: `*Command` (writes)
 - **Queries**: `*Query` (reads)
-- **Results**: `*Result`
+- **Results**: `*Result` — top level only; nested part records are named by content (`CartItemSummary`, `LineItemData`, `ProfileView`), never `*Result`. A result carries values (primitives, part records, value objects, read models), never an aggregate root or entity (`DCA-USE-015`); command results stay small, the view comes from a query
+- **Assemblers**: `*Assembler` when result assembly outgrows a static `from(...)` factory or is shared by several use cases — never `*Mapper`/`*Converter`/`*Helper` in `application/`
 
 ### Adapter Layer
 - **Incoming Adapters**:

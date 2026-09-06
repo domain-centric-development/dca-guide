@@ -407,6 +407,32 @@ static final ArchRule results_should_follow_naming =
         .because("Output models should end with 'Result'");
 ```
 
+**What a result may carry (`DCA-USE-015`).** A result is the use case's answer, not a handle on the model:
+values, enriched models and read models may cross the boundary, aggregate roots and entities may not. The
+check walks the record's components transitively — nested records, part records anywhere in the application
+layer (`application/shared` included), and the type arguments of `List<T>`, `Optional<T>` and `Map<K,V>` — because part records are named
+by content (`CartItemSummary`), not `*Result`, and would otherwise slip past a name-based selection:
+
+```java
+@ArchTest
+static void results_should_not_expose_aggregate_roots_or_entities(JavaClasses classes) {
+    var violations = classes.stream()
+        .filter(c -> c.getSimpleName().endsWith("Result")
+                  && c.getPackageName().contains(".application."))
+        .flatMap(result -> identityBearingComponents(result).stream()
+            .map(path -> result.getSimpleName() + " exposes " + path))
+        .toList();
+
+    assertThat(violations)
+        .as("A result carries values, never aggregate roots or entities")
+        .isEmpty();
+}
+
+// walks fields, record components and generic type arguments; recurses into records of the
+// same package; reports the path to the first type assignable to AggregateRoot or Entity
+private static List<String> identityBearingComponents(JavaClass result) { /* ... */ }
+```
+
 ### 5. Port and Adapter Rules
 
 Verify proper implementation of hexagonal architecture.
@@ -451,6 +477,19 @@ static final ArchRule input_adapters_should_depend_on_input_ports_not_use_case_c
         .because("Injecting the concrete use case couples the adapter to one realisation, "
             + "defeats the Dependency Inversion Principle the port exists for, and makes the "
             + "adapter untestable without the real use case and everything it depends on");
+
+// An incoming adapter translates external input, calls an input port and formats its
+// result. A domain service in its constructor means it derives business facts itself —
+// the use case owns that collaboration and puts the outcome into the result. Outgoing
+// adapters are deliberately not selected: repositories construct and reconstitute
+// domain objects while implementing output ports.
+@ArchTest
+static final ArchRule incoming_adapters_should_not_depend_on_domain_services =
+    noClasses()
+        .that().resideInAPackage("..adapter.incoming..")
+        .should().dependOnClassesThat().areAssignableTo(DomainService.class)
+        .because("Injecting or invoking a domain service bypasses the application boundary; "
+            + "the use case owns that collaboration and puts its outcome into the result");
 
 @ArchTest
 static final ArchRule adapters_should_not_depend_on_each_other =

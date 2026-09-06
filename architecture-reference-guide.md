@@ -109,6 +109,7 @@ application/
 
 **Key Characteristics:**
 - ✅ **High Cohesion** - InputPort interface + UseCase implementation + Command + Result all in one folder
+- ✅ **Values cross, identities do not** - a `*Result` carries primitives, nested part records (named by content, e.g. `OrderLineSummary`), value objects and read models, never an aggregate root or entity; the use case assembles it (static `from(...)`, use-case body, or a `*Assembler`)
 - ✅ **Self-Contained** - Everything for one use case is together
 - ✅ **Single Responsibility** - One folder = one business operation
 - ✅ **Easy Navigation** - Find all related files in one place

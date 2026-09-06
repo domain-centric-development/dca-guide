@@ -264,6 +264,88 @@ public record CreateOrderResult(OrderId orderId, Money total, OrderStatus status
 }
 ```
 
+#### Shaping the Result
+
+The rules above fix the *edges* of a result: its name and place (`*Result`, in the use-case package), its
+immutability, and that response DTOs and view models belong to the adapter. The *middle* — what a result may
+carry, who assembles it and how big it should be — follows seven sentences.
+
+1. **A result carries values, never identities.** Allowed: primitives, nested records, value objects
+   (shared kernel included — `Money`, `ProductId`), enriched domain models and read models (`Value` records
+   from `domain/model` and `domain/readmodel`). Forbidden: anything assignable to `AggregateRoot` or `Entity`.
+   Identity and behaviour stay behind the port; the adapter gets an answer, not a handle on the model.
+   Enforced transitively — through nested records, part records and generic arguments (`List<T>`,
+   `Optional<T>`, `Map<K,V>`) — by `DCA-USE-015`.
+2. **Command results are small.** A command returns ids, status or outcome, and what the caller needs for its
+   next step — not the view. The view comes from a query use case or a read model. Returning a whole read model
+   from a command is the documented exception (it saves a remote caller a round trip), and then it returns the
+   read-model `Value`, never a parade of primitives.
+3. **Part records are named by content; `*Result` is the top level only.** `CartItemSummary`, `LineItemData`,
+   `ProfileView` — nested in the result they belong to. A part shared by several use cases moves to
+   `application/shared`; there is no feature-level `shared`.
+4. **The application layer assembles the result — in order of effort.** (a) A static factory `from(...)` on the
+   result, parts as records with their own `from`. (b) A projection that needs several ports is orchestration
+   and lives in the use-case body. (c) When it grows or several use cases need it, a dedicated **`*Assembler`**
+   in the use-case folder or `application/shared`. Never `*Mapper`, `*Converter` (`DCA-NAM-008`), never
+   `Helper`.
+5. **Large aggregates hand out a snapshot, not a getter parade.** A `Value` record in `domain/readmodel`, built
+   by `Snapshot.from(aggregate)` (`DCA-TAC-022`). The snapshot *is* the result field; the use case does not
+   flatten it a second time.
+6. **The active-domain restriction is asymmetric.** An incoming adapter may read the domain values and read
+   models a `Result` delivers and format them for HTTP, HTML, MCP or another transport. It must not inject or
+   invoke a domain service (`DCA-HEX-012`), construct aggregates, entities or domain values, or execute domain
+   behaviour: it translates external input into a `Command`/`Query` and calls an input port. Outgoing adapters
+   are different: a repository or persistence adapter necessarily maps, constructs and reconstitutes domain
+   objects while implementing an output port. That mapping may restore state; it must not make new business
+   decisions.
+7. **One model for every adapter.** Vernon's Domain Payload Object (handing whole aggregates to the UI) and the
+   Mediator/double-dispatch rendering are not taken, also for in-process UIs — see
+   [Deviations from the literature](#deviations-from-the-literature).
+
+**Snapshot as the result field:**
+```java
+// domain/readmodel — a Value built from the aggregate, no identity of its own
+public record CheckoutCartSnapshot(
+        CheckoutSessionId sessionId, CheckoutStep step, CheckoutSessionStatus status,
+        List<LineItemSnapshot> lineItems, Money subtotal, @Nullable CheckoutTotals totals,
+        @Nullable BuyerInfo buyerInfo, @Nullable DeliveryAddress deliveryAddress)
+        implements Value {
+    public static CheckoutCartSnapshot from(CheckoutSession session) { /* copies state, no behaviour */ }
+}
+
+// application — the query result wraps the snapshot; nothing is flattened again
+public record GetCheckoutSessionResult(boolean found, @Nullable CheckoutCartSnapshot session) {
+    public static GetCheckoutSessionResult found(CheckoutCartSnapshot session) {
+        return new GetCheckoutSessionResult(true, session);
+    }
+}
+```
+
+**Command vs. query sizing:**
+```java
+// Command: what the caller needs next — the next page asks the query
+public record SubmitDeliveryResult(String sessionId, String currentStep, String status) {
+    public static SubmitDeliveryResult from(CheckoutSession session) {
+        return new SubmitDeliveryResult(
+                session.id().value().toString(), session.currentStep().name(), session.status().name());
+    }
+}
+
+// Query: the read model the page renders
+public record GetCheckoutSessionResult(boolean found, @Nullable CheckoutCartSnapshot session) { ... }
+```
+
+What an incoming adapter may do with a delivered value or read model: call its **own, parameterless queries**
+— `lineTotal()`, `priceDifference()`, `isValidForCheckout()` on an enriched cart are derivations of the
+value's own state, and a read model that could not answer them would be no read model. What it must not do:
+obtain or invoke a domain service, construct aggregates, entities or domain values, combine values from
+several sources into a new business fact, or trigger behaviour with side effects. When a page needs a fact the
+read model does not know — the tax contained in a subtotal, whether a checkout step may be opened — that fact
+is computed in the use case and delivered in the result. The result is too poor when an adapter has to import
+a domain service to render: a page controller that has to decide whether a checkout step may be opened asks
+the query for that decision (the use case invokes the domain service and delivers a `StepAccess` value) and
+maps the answer to a route.
+
 #### Application Layer Components
 
 - **Use Case / Application Service** - Orchestrates business operations
@@ -807,6 +889,8 @@ START: Something happened in the domain
 - Use case handles transaction boundaries
 - Use case transforms DTOs to domain objects
 - Use case transforms domain objects to DTOs
+- Use case assembles the `*Result` (static factory, use-case body or `*Assembler`); a result carries values, never aggregate roots or entities (`DCA-USE-015`)
+- Command results are small (ids, status, what the caller needs next); the view comes from a query or read model
 - No business logic in use cases
 - Use case tested with port mocks
 - Use case knows nothing about presentation
@@ -1577,7 +1661,8 @@ APPLICATION LAYER
 - **Use Case Implementation**: `*UseCase implements *InputPort` (e.g., `CreateOrderUseCase implements CreateOrderInputPort`)
 - **Commands**: `*Command` (e.g., `CreateOrderCommand`)
 - **Queries**: `*Query` (e.g., `OrderQuery`)
-- **Results**: `*Result` (e.g., `CreateOrderResult`)
+- **Results**: `*Result` (e.g., `CreateOrderResult`) — top level only; part records nested in the result are named by content (`CartItemSummary`, `LineItemData`, `ProfileView`), never `*Result`
+- **Assemblers**: `*Assembler` when result assembly outgrows a static factory or is shared by several use cases (e.g., `ProductArticleAssembler` in `application/shared`) — never `*Mapper`, `*Converter` or `*Helper` in the application layer
 - **Adapters**: `*Adapter` or specific suffixes (e.g., `InMemoryOrderRepository`, `OrderPageController`, `OrderMcpToolProvider`)
 
 **Benefits:**
@@ -2313,6 +2398,14 @@ The rejected alternative is worth naming: keeping the interface in the domain la
 ### Repository vs. Store
 
 The literature knows only the Repository (one per aggregate root). DCA refines this with a second output-port type, the **Store**, for operational data without aggregate lifecycle (value objects, technical state) — see [Repository vs. Store](#repository-vs-store).
+
+### Results Instead of Output Ports, Assembled on the Application Side
+
+Clean Architecture (Martin) lets the interactor hand its output data to a presenter through an output port; the presenter builds the view model. DCA returns the result: `UseCase<INPUT, OUTPUT>` yields a `*Result`, and the incoming adapter maps it to a `*Response` or `*ViewModel`. Two mapping steps, one direction of call, no callback interface per use case.
+
+Vernon (*Implementing DDD*, "Rendering Domain Objects") offers the **Domain Payload Object** — handing whole aggregates to an in-process UI — and the **Mediator** (double dispatch into a rendering interface) as alternatives to a DTO assembler. DCA takes neither, not even for an in-process UI: every adapter gets the same result model, REST and MCP are remote anyway, and a result that carries an aggregate root or entity is a rule violation (`DCA-USE-015`). What the literature agrees on is kept: no entity crosses the use-case boundary, the application layer assembles the business result (Fowler's *Assembler* is the name for the class when a static factory no longer suffices), and the incoming adapter formats without deriving business facts.
+
+The restriction is deliberately asymmetric. An incoming adapter reads and formats what a result delivers — including the own queries of a delivered value or read model — and operates no domain object; it obtains no domain service (`DCA-HEX-012`), constructs nothing and combines nothing into a new business fact. An outgoing adapter — a repository, a persistence mapper — necessarily constructs and reconstitutes domain objects while implementing an output port; it restores state and makes no new business decision.
 
 ### Pragmatic Domain-Layer Dependencies
 
