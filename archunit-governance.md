@@ -341,6 +341,15 @@ static final ArchRule use_cases_that_save_must_publish =
         .because("Unpublished events are lost, and events left on a stored aggregate may surface later out of context");
 ```
 
+This condition looks at the class as a whole, which is enough to teach the idea. Two things it does
+not see: a publication in one method covers a save in an *unrelated* method, and a helper shared by
+two entry methods appears to connect them. A production version — the published `DCA-USE-009` rule
+does this — follows the calls within the class and judges every *entry path*: each entry point that
+reaches a `save` — a method callable from outside the class, or one nothing in the class calls — must
+also reach a `publishAndClearEvents`; a public method stays an entry point when a wrapper calls it. Even
+then, bytecode does not say in which order the two calls run or that they concern the same aggregate,
+and ArchUnit attributes a lambda's body to the enclosing method; those remain review checks.
+
 Note the rule demands the call **unconditionally**, not only where an event is expected: whether an
 action raised one is the aggregate's business, and a use case that publishes only "when needed"
 breaks silently the day an aggregate starts raising an event it did not raise before.
@@ -1125,8 +1134,13 @@ rules.off               = DCA-NAM-002
 rule.DCA-NAM-002.reason = no DI framework in this project
 rules.warn              = DCA-TAC-009
 rule.DCA-STR-003.ignore = .*legacy.*
+rule.DCA-STR-003.ignore.1 = Generated.{1,3}Client
 rules.freeze            = DCA-ONI-002
 ```
+
+An `ignore` value is one regular expression as written — commas are part of it — and a second
+exception for the same rule uses an indexed key (`.ignore.1`, `.ignore.2`, …). Lists of rule ids and
+set names are comma-separated.
 
 With hand-written rules the same dials exist in cruder form: scope is which test classes you keep,
 severity is a rule you evaluate and log instead of asserting, exceptions are extra `and()` predicates
