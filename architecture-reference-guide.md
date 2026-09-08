@@ -278,9 +278,7 @@ sharedkernel/
 │   └── exception/               ← Base domain exceptions
 │       ├── DomainException.java
 │       └── BusinessRuleViolationException.java
-└── adapter/
-    └── outgoing/                ← Shared adapters
-        └── SpringDomainEventPublisher.java
+└── (DomainEventPublisher / TransactionBoundary implementations come from dca-spring)
 ```
 
 **What Belongs in Shared Kernel:**

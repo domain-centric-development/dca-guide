@@ -85,9 +85,9 @@ com.company.project/
 ├── sharedkernel/             # Keep minimal - project-specific shared code only
 │   ├── application/shared/   # Application-specific shared ports (IdentityProvider)
 │   ├── domain/model/         # Universal value objects (Money, ProductId, UserId)
-│   ├── adapter/outgoing/     # Shared adapters (e.g., SpringDomainEventPublisher)
-│   └── infrastructure/       # SpringTransactionBoundary
-│   (markers, ports, TransactionBoundary come from the dca-building-blocks dependency)
+│   (markers, ports, TransactionBoundary come from dca-building-blocks; their Spring implementations
+│    SpringDomainEventPublisher / SpringTransactionBoundary from dca-spring; Modulith verification
+│    from dca-archunit-spring-modulith)
 └── infrastructure/           # Global infrastructure (cross-cutting)
     ├── config/               # @Configuration classes
     ├── support/              # Framework support (processors, listeners)
@@ -134,7 +134,7 @@ The [dca-ecommerce-sample-java](https://github.com/domain-centric-development/dc
   - `ddd.strategic` (+ `.relationships`) - @BoundedContext, @SharedKernel, @OpenHostService, @Upstream, @ExternalUpstream, @Partnership
   - `hexagonal.port.in` - InputPort, UseCase; `hexagonal.port.out` - OutputPort, Repository, Store, DomainEventPublisher, IntegrationEventPublisher
   - `application` - TransactionBoundary (execution abstraction, not a port)
-- **The project's `sharedkernel/` holds only**: `application/shared/` (application-specific shared ports, e.g. `IdentityProvider`), `domain/model/`, `domain/specification/`, `adapter/outgoing/event/SpringDomainEventPublisher`, `infrastructure/transaction/SpringTransactionBoundary`
+- **The project's `sharedkernel/` holds only**: `application/shared/` (application-specific shared ports, e.g. `IdentityProvider`), `domain/model/`, `domain/specification/`. The runtime adapters come from `dev.domaincentric:dca-spring` (`SpringDomainEventPublisher`, `SpringTransactionBoundary`, `InMemoryTransactionBoundary`, auto-configured); the Modulith verification test from `dev.domaincentric:dca-archunit-spring-modulith` (`DcaModulithTest`). A Spring project pairs `dca-building-blocks` + `dca-spring` (production) with `dca-archunit` + `dca-archunit-spring-modulith` (test)
 - **Port Interface Hierarchy**:
   - `InputPort` - Marker interface for all input ports (driving adapters)
   - `OutputPort` - Marker interface for all output ports (driven adapters)

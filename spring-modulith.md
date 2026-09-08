@@ -919,11 +919,35 @@ package com.company.ecommerce.order;
 
 ### Module Structure Verification
 
+Modulith's `ApplicationModules.verify()` is not an ArchUnit rule and needs `spring-modulith-core` at compile
+time, so it ships in its own test artifact next to the rule catalog, `dev.domaincentric:dca-archunit-spring-modulith`.
+Two base classes, two test classes, the same layout:
+
+```kotlin
+testImplementation("dev.domaincentric:dca-archunit:0.3.0")
+testImplementation("dev.domaincentric:dca-archunit-spring-modulith:0.1.0")
+```
+
 ```java
-@Modulith
+class ModulithTest extends DcaModulithTest {
+    @Override
+    protected DcaLayout layout() {
+        return DcaLayout.forBasePackage("com.company.project");
+    }
+}
+```
+
+The base class runs `verify()` and lists the discovered modules with their named interfaces. Its one piece
+of knowledge is the test-class filter: architecture tests living directly in the base package would
+otherwise become a synthetic *root module* that Modulith reports as depending on non-exposed types. The
+filter matches the **full** class name, so inner and Groovy closure classes (`FooTest$1`,
+`FooSpec$_check_closure1`) are excluded with their owner. `ModulithModules.of(layout)` returns the filtered
+`ApplicationModules` for assertions of your own — the raw form, for reference:
+
+```java
 class ModularityTests {
 
-    ApplicationModules modules = ApplicationModules.of(EcommerceApplication.class);
+    ApplicationModules modules = ApplicationModules.of("com.company.project", ModulithModules.testClasses());
 
     @Test
     void verifiesModularStructure() {
