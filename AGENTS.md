@@ -6,7 +6,9 @@ This file provides guidance to AI coding agents (Claude Code, Codex, and others)
 
 This is a **documentation repository** focused on Domain-Centric Architecture - a synthesis of Domain-Driven Design (DDD), Hexagonal Architecture (Ports & Adapters), and Clean Architecture principles. It contains no source code, only comprehensive architectural guidance and implementation patterns.
 
-**Purpose:** Reference documentation for teams implementing domain-centric architectures in Java/Spring Boot projects.
+**Purpose:** Reference documentation for teams implementing domain-centric architectures in Java/Spring Boot projects — and, through `language-mappings.md`, in C#/.NET. The guide is written in Java; every concept has a documented .NET spelling.
+
+**Building blocks and rules are published libraries**, not guide-owned code: Java `dev.domaincentric:dca-building-blocks` + `dca-archunit` (Maven Central), .NET `DomainCentric.BuildingBlocks` + `DomainCentric.ArchRules(.Xunit)` (NuGet). The guide shows the dependency and describes the markers; it never presents them as files to write. Versions quoted in snippets (`0.1.2` / `0.3.0`) must follow releases of `../dca-java` and `../dca-dotnet`.
 
 **Reference Implementation:** [dca-ecommerce-sample-java](https://github.com/domain-centric-development/dca-ecommerce-sample-java) - Complete working implementation demonstrating all patterns described in this documentation.
 
@@ -40,7 +42,8 @@ The repository contains interconnected markdown documents:
 
 ### Supplementary Guides
 - **spring-modulith.md** - Practical implementation using Spring Modulith framework
-- **archunit-governance.md** - Automated architecture testing with ArchUnit
+- **archunit-governance.md** - Automated architecture testing with the `dca-archunit` rule library (and ArchUnitNET for .NET); plain-ArchUnit examples explain what each rule checks
+- **language-mappings.md** - Java/Spring ↔ C#/.NET: packages, building blocks, ports, context declaration, solution layout, framework concepts, governance
 - **clean-architecture-comparison.md** - Comparison with Clean Architecture and when to use each
 - **deployment-patterns.md** - Self-Contained Systems, service decomposition, deployment strategies
 - **team-topologies.md** - Organizational patterns and team structure alignment
@@ -79,10 +82,12 @@ com.company.project/
 │   │   ├── incoming/         # Controllers, event consumers
 │   │   └── outgoing/         # Repository impls, API clients
 │   └── infrastructure/       # Framework configuration (optional, per-context)
-├── sharedkernel/             # Keep minimal - Architectural markers, value objects
-│   ├── marker/               # tactical/, strategic/, port/in/, port/out/
+├── sharedkernel/             # Keep minimal - project-specific shared code only
+│   ├── application/shared/   # Application-specific shared ports (IdentityProvider)
 │   ├── domain/model/         # Universal value objects (Money, ProductId, UserId)
-│   └── adapter/outgoing/     # Shared adapters (e.g., SpringDomainEventPublisher)
+│   ├── adapter/outgoing/     # Shared adapters (e.g., SpringDomainEventPublisher)
+│   └── infrastructure/       # SpringTransactionBoundary
+│   (markers, ports, TransactionBoundary come from the dca-building-blocks dependency)
 └── infrastructure/           # Global infrastructure (cross-cutting)
     ├── config/               # @Configuration classes
     ├── support/              # Framework support (processors, listeners)
@@ -124,12 +129,12 @@ com.company.project/
 The [dca-ecommerce-sample-java](https://github.com/domain-centric-development/dca-ecommerce-sample-java) demonstrates these specific choices:
 
 ### Shared Kernel Structure
-- **Package Organization**: Consolidated under `marker/` with subpackages:
-  - `marker/tactical/` - DDD tactical patterns (Entity, Value, AggregateRoot, DomainEvent, etc.)
-  - `marker/strategic/` - DDD strategic patterns (BoundedContext, SharedKernel, OpenHostService)
-  - `marker/port/in/` - Input ports (InputPort, UseCase)
-  - `marker/port/out/` - Output ports (OutputPort, Repository, Store, DomainEventPublisher)
-  - `application/shared/` (outside `marker/`) - Application-specific ports shared by several contexts (e.g. `IdentityProvider`); not generic markers
+- **Building blocks come from the library** `dev.domaincentric.dca.buildingblocks` (dependency, not source):
+  - `ddd.tactical` - DDD tactical patterns (Id, Entity, Value, AggregateRoot, BaseAggregateRoot, DomainEvent, IntegrationEvent, IntegrationEventType, DomainService, DomainGateway, Factory, Specification)
+  - `ddd.strategic` (+ `.relationships`) - @BoundedContext, @SharedKernel, @OpenHostService, @Upstream, @ExternalUpstream, @Partnership
+  - `hexagonal.port.in` - InputPort, UseCase; `hexagonal.port.out` - OutputPort, Repository, Store, DomainEventPublisher, IntegrationEventPublisher
+  - `application` - TransactionBoundary (execution abstraction, not a port)
+- **The project's `sharedkernel/` holds only**: `application/shared/` (application-specific shared ports, e.g. `IdentityProvider`), `domain/model/`, `domain/specification/`, `adapter/outgoing/event/SpringDomainEventPublisher`, `infrastructure/transaction/SpringTransactionBoundary`
 - **Port Interface Hierarchy**:
   - `InputPort` - Marker interface for all input ports (driving adapters)
   - `OutputPort` - Marker interface for all output ports (driven adapters)
@@ -137,7 +142,6 @@ The [dca-ecommerce-sample-java](https://github.com/domain-centric-development/dc
   - `Repository<T, ID> extends OutputPort` - Base repository interface (Aggregate Roots only)
   - `Store extends OutputPort` - Persistence port for operational data without aggregate lifecycle
   - `DomainEventPublisher extends OutputPort` - Event publishing interface
-- **Marker Interfaces**: Includes `Id.java`, `IntegrationEvent.java`, `BaseAggregateRoot.java`
 - **Specification Pattern**: Fully implemented in `sharedkernel/domain/specification/` with Composite, And, Or, Not specifications
 - **Common Value Objects**: `Money.java`, `Price.java`, `ProductId.java`, `UserId.java` in `sharedkernel/domain/model/`
 
@@ -181,6 +185,7 @@ If changing architectural patterns, update these sections across documents:
 2. Spring Modulith implementation examples
 3. ArchUnit test examples
 4. Deployment pattern implications
+5. `language-mappings.md` — every new Java concept or rename needs its C# row
 
 ### Code Examples
 All code examples should:

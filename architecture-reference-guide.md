@@ -223,14 +223,15 @@ infrastructure/
 - **`sharedkernel.domain`** - Shared domain concepts:
   - **`model/`** - Universal value objects (Money, common IDs, Address)
   - **`specification/`** - Common Specification Pattern classes
-- **`sharedkernel.marker`** - Shared port marker interfaces:
-  - **`tactical/`** - tactical DDD pattern interfaces (AggregateRoot, Entity, Value, DomainEvent, etc.)
-  - **`strategic/`** - strategic DDD pattern interfaces (BoundedContext, SharedKernel, OpenHostService, etc.)
-  - **`port.in/`** - Input port interfaces (InputPort, UseCase)
-  - **`port.out/`** - Output port interfaces (OutputPort, Repository, DomainEventPublisher)
 - **`sharedkernel.application.shared`** - Application-specific ports shared by several bounded contexts (e.g. an `IdentityProvider`); not part of the generic marker set
 
-**Dependencies**: NONE (framework-independent)
+**Not in the shared kernel — a dependency:** the architectural markers come from the
+`dev.domaincentric:dca-building-blocks` library (`ddd.tactical`: AggregateRoot, Entity, Value,
+DomainEvent, …; `ddd.strategic`: @BoundedContext, @SharedKernel, @OpenHostService, …;
+`hexagonal.port.in`: InputPort, UseCase; `hexagonal.port.out`: OutputPort, Repository, Store,
+DomainEventPublisher). .NET: `DomainCentric.BuildingBlocks` with `I`-prefixed twins.
+
+**Dependencies**: NONE beyond the building blocks (framework-independent)
 
 **Port Interface Hierarchy**:
 ```

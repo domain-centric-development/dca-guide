@@ -3,6 +3,11 @@
 
 > **📘 Prerequisites:** This document shows how to implement [Domain-Centric Architecture](./README.md) using Spring Modulith. Read the main document first for core patterns and rules.
 
+> **☕ Java/Spring specific.** Everything here assumes Spring Boot and Spring Modulith. The .NET
+> equivalents — project boundaries plus ArchUnitNET instead of module verification, an outbox or
+> post-commit dispatch instead of `@TransactionalEventListener`, DI registration instead of component
+> scan — are in [Language Mappings](./language-mappings.md).
+
 ## Introduction
 
 Spring Modulith is a framework for building **modular monolithic applications** with Spring Boot. It implements the [Domain-Centric Architecture](./README.md) patterns while providing:
