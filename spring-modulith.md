@@ -929,7 +929,7 @@ testImplementation("dev.domaincentric:dca-archunit-spring-modulith:0.1.0")
 ```
 
 ```java
-class ModulithTest extends DcaModulithTest {
+class ModulithTest extends DcaSpringModulithTest {
     @Override
     protected DcaLayout layout() {
         return DcaLayout.forBasePackage("com.company.project");
@@ -941,13 +941,13 @@ The base class runs `verify()` and lists the discovered modules with their named
 of knowledge is the test-class filter: architecture tests living directly in the base package would
 otherwise become a synthetic *root module* that Modulith reports as depending on non-exposed types. The
 filter matches the **full** class name, so inner and Groovy closure classes (`FooTest$1`,
-`FooSpec$_check_closure1`) are excluded with their owner. `ModulithModules.of(layout)` returns the filtered
+`FooSpec$_check_closure1`) are excluded with their owner. `SpringModulithModules.of(layout)` returns the filtered
 `ApplicationModules` for assertions of your own — the raw form, for reference:
 
 ```java
 class ModularityTests {
 
-    ApplicationModules modules = ApplicationModules.of("com.company.project", ModulithModules.testClasses());
+    ApplicationModules modules = ApplicationModules.of("com.company.project", SpringModulithModules.testClasses());
 
     @Test
     void verifiesModularStructure() {
