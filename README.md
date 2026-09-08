@@ -773,6 +773,8 @@ public interface OrderRepository extends Repository<Order, OrderId> {
 - Eventual consistency between aggregates
 - Delete aggregate deletes all contained entities
 - Never inject repositories or services into aggregates — pass dependencies as method parameters
+- Two factories, two purposes: `create(...)` enforces creation invariants and registers the creation event; `reconstitute(...)` rebuilds a stored aggregate from persisted state and registers nothing. Persistence adapters use only the latter — rebuilding through `create` publishes a phantom creation on the next save
+- Domain events leave the aggregate through one call, `DomainEventPublisher.publishAndClearEvents(aggregate)`, after the save: dispatch everything, clear only when every listener returned. Iterating `domainEvents()` and calling `publish` per event is not the sanctioned form
 - Protect against lost updates with optimistic concurrency: version field on the root, incremented per state change; persistence rejects saves with a stale expected version
 
 #### Domain Service Rules
@@ -891,6 +893,10 @@ START: Something happened in the domain
 - Use case transforms domain objects to DTOs
 - Use case assembles the `*Result` (static factory, use-case body or `*Assembler`); a result carries values, never aggregate roots or entities (`DCA-USE-015`)
 - Command results are small (ids, status, what the caller needs next); the view comes from a query or read model
+- A use case that saves an aggregate publishes and clears its domain events after the save (`publishAndClearEvents`, `DCA-USE-009`) — whether the action raised any or not
+- A query use case carries no transaction and no publisher; it loads and assembles
+- A bulk operation (delete all, archive everything before a date) is a method on the port — the port is freely extensible beyond `findById`/`save`/`deleteById` — that the use case calls without loading or saving a single aggregate: no domain event, no publisher, a declarative transaction. If other contexts must learn about it, one integration event describes the bulk fact
+- A number derived from a list (the count of open items on a list page) is a field of the list query's result, not a use case of its own and not a read model
 - No business logic in use cases
 - Use case tested with port mocks
 - Use case knows nothing about presentation
