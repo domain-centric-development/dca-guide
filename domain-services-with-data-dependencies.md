@@ -1,39 +1,39 @@
-# Domain Services mit Datenabhängigkeiten
+# Domain Services with Data Dependencies
 
-> **Kontext:** Domain-Centric Architecture · Pricing Bounded Context
-> **Zielgruppe:** Entwickler, die Domain Services mit externem Datenzugriff implementieren
+> **Context:** Domain-Centric Architecture · Pricing Bounded Context
+> **Audience:** Developers implementing Domain Services that need external data access
 
 ---
 
-## Problemstellung
+## Problem Statement
 
-Domain Services sind per Definition **stateless** und gehören zum Domain Layer — dem innersten Ring der Architektur. Sie haben **keine Abhängigkeiten nach außen**. Aber was passiert, wenn ein Domain Service zusätzliche Daten braucht, um seine Berechnung durchzuführen?
+Domain Services are by definition **stateless** and belong to the Domain Layer — the innermost ring of the architecture. They have **no outward dependencies**. But what happens when a Domain Service needs additional data to perform its calculation?
 
-**Konkretes Beispiel:** Ein `BundleDiscountService` soll einen Rabatt berechnen, der von der Kategorie des Produkts abhängt. Die Kategorie-Preis-Zuordnung liegt aber nicht im aktuellen Aggregate — sie muss nachgeladen werden.
+**Concrete example:** A `BundleDiscountService` is supposed to calculate a discount that depends on the product's category. The category-to-price mapping, however, does not live in the current Aggregate — it has to be loaded on demand.
 
 ```java
-// Das Problem: Der Domain Service braucht Daten, die er nicht hat
+// The problem: the Domain Service needs data it does not have
 public final class BundleDiscountService implements DomainService {
 
     public Price calculateBundleDiscount(ProductId productId, Price basePrice) {
-        // Woher kommt die Kategorie-Information?
-        // Der Domain Layer darf keine Repositories oder Adapter kennen!
+        // Where does the category information come from?
+        // The Domain Layer must not know any Repositories or Adapters!
         CategoryDiscount discount = ???;
         return applyDiscount(basePrice, discount);
     }
 }
 ```
 
-Die Dependency Rule verbietet es dem Domain Layer, auf den Application Layer oder Adapter zuzugreifen. Trotzdem muss der Domain Service an die Daten kommen.
+The Dependency Rule forbids the Domain Layer to access the Application Layer or Adapters. Yet the Domain Service has to get hold of the data.
 
 ---
 
-## Default-Regel: Pure Domain Services (90% der Fälle)
+## Default Rule: Pure Domain Services (90% of Cases)
 
-In den meisten Fällen ist die richtige Lösung: **Der Application Service (Use Case) orchestriert.** Er lädt alle benötigten Daten über Output Ports und übergibt sie dem Domain Service als Parameter.
+In most cases the right solution is: **the Application Service (Use Case) orchestrates.** It loads all required data through Output Ports and hands it to the Domain Service as parameters.
 
 ```java
-// Application Layer — Use Case orchestriert
+// Application Layer — the Use Case orchestrates
 public class CalculateBundleDiscountUseCase implements CalculateBundleDiscountInputPort {
 
     private final ProductPriceRepository productPriceRepository;
@@ -45,7 +45,7 @@ public class CalculateBundleDiscountUseCase implements CalculateBundleDiscountIn
             .findByProductId(command.productId())
             .orElseThrow();
 
-        // Domain Service erhält alle Daten als Parameter — pure, testbar, einfach
+        // The Domain Service receives all data as parameters — pure, testable, simple
         Price discountedPrice = bundleDiscountService.calculateBundleDiscount(
             productPrice.price(),
             productPrice.category(),
@@ -58,7 +58,7 @@ public class CalculateBundleDiscountUseCase implements CalculateBundleDiscountIn
 ```
 
 ```java
-// Domain Layer — Pure Domain Service, keine Abhängigkeiten
+// Domain Layer — pure Domain Service, no dependencies
 public final class BundleDiscountService implements DomainService {
 
     public Price calculateBundleDiscount(Price basePrice, Category category, int bundleSize) {
@@ -68,23 +68,23 @@ public final class BundleDiscountService implements DomainService {
 }
 ```
 
-**Das ist der bevorzugte Ansatz.** Er hält den Domain Service pure und testbar. Erst wenn die Orchestrierung im Use Case zu komplex wird oder die Domänenlogik selbst entscheiden muss, welche Daten sie braucht, kommen die folgenden Alternativen ins Spiel.
+**This is the preferred approach.** It keeps the Domain Service pure and testable. Only when the orchestration in the Use Case becomes too complex, or when the domain logic itself has to decide which data it needs, do the following alternatives come into play.
 
 ---
 
-## Ansatz 1: DomainGateway Pattern
+## Approach 1: DomainGateway Pattern
 
-### Konzept
+### Concept
 
-Ein **DomainGateway** ist ein schmales, read-only Interface im Domain Layer, das in der **Ubiquitous Language** formuliert ist. Es erlaubt dem Domain Service, gezielt Daten nachzuladen, ohne die Dependency Rule zu verletzen.
+A **DomainGateway** is a narrow, read-only interface in the Domain Layer, phrased in the **Ubiquitous Language**. It allows the Domain Service to load specific data on demand without violating the Dependency Rule.
 
-**Wichtige Abgrenzung:**
-- Ein DomainGateway ist ein **taktisches DDD-Pattern** — es gehört in den Domain Layer
-- Es ist **kein OutputPort** — OutputPorts gehören zum Application Layer (Hexagonal Architecture)
-- Es ist **kein Repository** — Repositories verwalten Aggregate Roots mit vollem Lifecycle (CRUD)
-- Ein DomainGateway ist **read-only** und liefert nur die Daten, die der Domain Service für seine Berechnung braucht
+**Important distinctions:**
+- A DomainGateway is a **tactical DDD pattern** — it belongs in the Domain Layer
+- It is **not an OutputPort** — OutputPorts belong to the Application Layer (Hexagonal Architecture)
+- It is **not a Repository** — Repositories manage Aggregate Roots with their full lifecycle (CRUD)
+- A DomainGateway is **read-only** and returns only the data the Domain Service needs for its calculation
 
-### Marker-Interface
+### Marker Interface
 
 ```java
 package de.sample.aiarchitecture.sharedkernel.marker.tactical;
@@ -113,27 +113,27 @@ package de.sample.aiarchitecture.sharedkernel.marker.tactical;
 public interface DomainGateway {}
 ```
 
-**Einordnung im Shared Kernel:**
+**Placement in the Shared Kernel:**
 
 ```
 sharedkernel/marker/tactical/
 ├── DomainService.java
-├── DomainGateway.java          ← NEU
+├── DomainGateway.java          ← NEW
 ├── AggregateRoot.java
 ├── Entity.java
 ├── Value.java
 └── ...
 ```
 
-### Naming-Konventionen
+### Naming Conventions
 
-| Suffix       | Verwendung                                           | Beispiel                    |
+| Suffix       | Usage                                                | Example                     |
 |--------------|------------------------------------------------------|-----------------------------|
-| `*Lookup`    | Einfache Datenabfrage (Key → Value)                  | `CategoryPriceLookup`       |
-| `*Resolver`  | Auflösung mit Logik (z.B. Fallback, Hierarchie)     | `TaxRateResolver`           |
-| `*Provider`  | Bereitstellung von Kontextdaten                      | `ExchangeRateProvider`      |
+| `*Lookup`    | Simple data query (key → value)                      | `CategoryPriceLookup`       |
+| `*Resolver`  | Resolution with logic (e.g. fallback, hierarchy)     | `TaxRateResolver`           |
+| `*Provider`  | Provision of contextual data                         | `ExchangeRateProvider`      |
 
-### Vollständiges Code-Beispiel
+### Complete Code Example
 
 **1. DomainGateway Interface (Domain Layer)**
 
@@ -172,7 +172,7 @@ public record CategoryDiscount(String categoryName, int discountPercentage) impl
 }
 ```
 
-**3. Domain Service mit DomainGateway (Domain Layer)**
+**3. Domain Service with DomainGateway (Domain Layer)**
 
 ```java
 package de.sample.aiarchitecture.pricing.domain.service;
@@ -209,7 +209,7 @@ public final class BundleDiscountService implements DomainService {
 }
 ```
 
-**4. Adapter-Implementierung (Adapter Layer)**
+**4. Adapter Implementation (Adapter Layer)**
 
 ```java
 package de.sample.aiarchitecture.pricing.adapter.outgoing.categorylookup;
@@ -237,7 +237,7 @@ class InMemoryCategoryPriceLookup implements CategoryPriceLookup {
 }
 ```
 
-**5. Wiring im Use Case (Application Layer)**
+**5. Wiring in the Use Case (Application Layer)**
 
 ```java
 package de.sample.aiarchitecture.pricing.application.calculatebundlediscount;
@@ -266,7 +266,7 @@ public class CalculateBundleDiscountUseCase implements CalculateBundleDiscountIn
 }
 ```
 
-### Datenfluss
+### Data Flow
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -294,48 +294,48 @@ public class CalculateBundleDiscountUseCase implements CalculateBundleDiscountIn
 │      │                          │                                           │
 │      │◀── CategoryDiscount ◀────┘                                           │
 │      │                                                                      │
-│      └──▶ Price (berechnet)                                                 │
+│      └──▶ Price (calculated)                                                │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Abgrenzung: DomainGateway vs. Repository
+### Distinction: DomainGateway vs. Repository
 
-| Aspekt              | Repository                              | DomainGateway                            |
+| Aspect              | Repository                              | DomainGateway                            |
 |---------------------|-----------------------------------------|------------------------------------------|
 | **Marker**          | `extends OutputPort`                    | `extends DomainGateway`                  |
-| **Layer**           | Application Layer (Output Port)         | Domain Layer (taktisches Pattern)        |
-| **Verantwortung**   | Aggregate Lifecycle (CRUD)              | Read-only Datenabfrage                   |
-| **Scope**           | Ganzes Aggregate Root                   | Schmaler Datenausschnitt                 |
-| **Mutationen**      | `save()`, `deleteById()`               | Keine                                    |
-| **Benutzt von**     | Use Cases (Application Layer)           | Domain Services (Domain Layer)           |
-| **Implementiert von** | Outgoing Adapter                      | Outgoing Adapter                         |
+| **Layer**           | Application Layer (Output Port)         | Domain Layer (tactical pattern)          |
+| **Responsibility**  | Aggregate lifecycle (CRUD)              | Read-only data query                     |
+| **Scope**           | Whole Aggregate Root                    | Narrow slice of data                     |
+| **Mutations**       | `save()`, `deleteById()`               | None                                     |
+| **Used by**         | Use Cases (Application Layer)           | Domain Services (Domain Layer)           |
+| **Implemented by**  | Outgoing Adapter                        | Outgoing Adapter                         |
 
-### Vor- und Nachteile
+### Pros and Cons
 
-**Vorteile:**
-- Domain Service kann eigenständig entscheiden, welche Daten er wann braucht
-- Interface ist in Ubiquitous Language formuliert — explizit im Domain Model
-- Einfach testbar: Mock des DomainGateway im Unit Test
-- Gut geeignet für komplexe Domänenlogik mit bedingten Datenabfragen
+**Pros:**
+- The Domain Service can decide on its own which data it needs and when
+- The interface is phrased in the Ubiquitous Language — explicit in the domain model
+- Easy to test: mock the DomainGateway in the unit test
+- Well suited for complex domain logic with conditional data queries
 
-**Nachteile:**
-- Führt eine Abhängigkeit in den Domain Layer ein (wenn auch abstrakt)
-- Kann als "Hintertür" missbraucht werden — Disziplin nötig
-- Mehr Klassen: Interface + Implementierung + Marker
-- Nicht in allen DDD-Literaturquellen als Pattern etabliert
+**Cons:**
+- Introduces a dependency into the Domain Layer (albeit an abstract one)
+- Can be abused as a "back door" — discipline required
+- More classes: interface + implementation + marker
+- Not established as a pattern in all DDD literature
 
 ---
 
-## Ansatz 2: Strategy/Callback Pattern
+## Approach 2: Strategy/Callback Pattern
 
-### Konzept
+### Concept
 
-Der Domain Service erhält die Datenbeschaffung als **funktionalen Parameter** (Strategy). Der Application Service übergibt ein Lambda oder eine Method Reference, die die Daten liefert. Der Domain Layer definiert kein Interface — die Abhängigkeit existiert nur zur Aufrufzeit.
+The Domain Service receives the data retrieval as a **functional parameter** (Strategy). The Application Service passes a lambda or method reference that supplies the data. The Domain Layer defines no interface — the dependency exists only at call time.
 
-### Vollständiges Code-Beispiel
+### Complete Code Example
 
-**1. Domain Service mit funktionalem Parameter (Domain Layer)**
+**1. Domain Service with Functional Parameter (Domain Layer)**
 
 ```java
 package de.sample.aiarchitecture.pricing.domain.service;
@@ -372,7 +372,7 @@ public final class BundleDiscountService implements DomainService {
 }
 ```
 
-**2. Wiring im Use Case (Application Layer)**
+**2. Wiring in the Use Case (Application Layer)**
 
 ```java
 package de.sample.aiarchitecture.pricing.application.calculatebundlediscount;
@@ -405,9 +405,9 @@ public class CalculateBundleDiscountUseCase implements CalculateBundleDiscountIn
 }
 ```
 
-### Variante: Eigenes Functional Interface statt `java.util.function.Function`
+### Variant: Dedicated Functional Interface Instead of `java.util.function.Function`
 
-Wenn die Signatur von `Function<ProductId, Optional<CategoryDiscount>>` zu generisch ist, kann ein eigenes Functional Interface die Lesbarkeit verbessern:
+If the signature `Function<ProductId, Optional<CategoryDiscount>>` is too generic, a dedicated functional interface can improve readability:
 
 ```java
 package de.sample.aiarchitecture.pricing.domain.service;
@@ -422,7 +422,7 @@ public interface CategoryDiscountLookup {
 }
 ```
 
-Der Domain Service verwendet dann:
+The Domain Service then uses:
 
 ```java
 public Price calculateBundleDiscount(
@@ -436,14 +436,14 @@ public Price calculateBundleDiscount(
 }
 ```
 
-Der Aufruf im Use Case bleibt identisch — Java's Lambda-Kompatibilität sorgt dafür, dass das Lambda automatisch zum Functional Interface passt.
+The call in the Use Case stays identical — Java's lambda compatibility ensures that the lambda automatically matches the functional interface.
 
-**Empfehlung:** Verwende ein eigenes Functional Interface wenn:
-- Die Methode mehr als einmal verwendet wird
-- Die generische Signatur `Function<A, B>` die Lesbarkeit verschlechtert
-- Du die Methode dokumentieren willst (Javadoc auf dem Interface)
+**Recommendation:** Use a dedicated functional interface when:
+- The method is used more than once
+- The generic signature `Function<A, B>` hurts readability
+- You want to document the method (Javadoc on the interface)
 
-### Datenfluss
+### Data Flow
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -451,7 +451,7 @@ Der Aufruf im Use Case bleibt identisch — Java's Lambda-Kompatibilität sorgt 
 │                                                                             │
 │  CalculateBundleDiscountUseCase                                             │
 │      │                                                                      │
-│      │ ruft auf mit Lambda: productId -> repository.find(...)              │
+│      │ calls with lambda: productId -> repository.find(...)                │
 │      │                                    │                                 │
 │      ▼                                    ▼                                 │
 └──────┼──────────────────────────────┬─────┼─────────────────────────────────┘
@@ -462,76 +462,76 @@ Der Aufruf im Use Case bleibt identisch — Java's Lambda-Kompatibilität sorgt 
 │  BundleDiscountService              │     │                                 │
 │      │                              │     │                                 │
 │      │──▶ discountLookup.apply(id) ─┘     │                                 │
-│      │         (Lambda-Callback)          │                                 │
+│      │         (lambda callback)          │                                 │
 │      │                                    │                                 │
 │      │◀── CategoryDiscount ◀──────────────┘                                 │
 │      │                                                                      │
-│      └──▶ Price (berechnet)                                                 │
+│      └──▶ Price (calculated)                                                │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Vor- und Nachteile
+### Pros and Cons
 
-**Vorteile:**
-- **Zero Abhängigkeiten** im Domain Layer — nicht mal ein abstraktes Interface
-- Domain Service bleibt ein echtes Pure Object (stateless, no fields)
-- Maximale Testbarkeit: Lambda im Test inline definieren
-- Kein zusätzliches Marker-Interface nötig
-- Leichtgewichtig — keine zusätzlichen Klassen
+**Pros:**
+- **Zero dependencies** in the Domain Layer — not even an abstract interface
+- The Domain Service remains a true pure object (stateless, no fields)
+- Maximum testability: define the lambda inline in the test
+- No additional marker interface needed
+- Lightweight — no additional classes
 
-**Nachteile:**
-- Methodensignatur wird länger und komplexer
-- Weniger explizit: `Function<ProductId, Optional<CategoryDiscount>>` ist nicht sofort verständlich
-- Callback-Logik kann im Use Case unübersichtlich werden
-- Kein Platz für Javadoc am Contract (bei `java.util.function.Function`)
-- Bei mehreren Datenquellen: Parameter-Explosion
+**Cons:**
+- The method signature becomes longer and more complex
+- Less explicit: `Function<ProductId, Optional<CategoryDiscount>>` is not immediately understandable
+- Callback logic can clutter the Use Case
+- No place for Javadoc on the contract (with `java.util.function.Function`)
+- With several data sources: parameter explosion
 
 ---
 
-## Vergleich: Wann welchen Ansatz nutzen
+## Comparison: When to Use Which Approach
 
-| Kriterium                        | Pure Domain Service     | DomainGateway              | Strategy/Callback          |
+| Criterion                        | Pure Domain Service     | DomainGateway              | Strategy/Callback          |
 |----------------------------------|-------------------------|----------------------------|----------------------------|
-| **Komplexität der Datenabfrage** | Einfach (1-2 Quellen)  | Mittel bis komplex         | Einfach (1 Quelle)        |
-| **Abhängigkeiten im Domain**     | Keine                   | Abstraktes Interface       | Keine                      |
-| **Testbarkeit**                  | Trivial                 | Mock des Gateway           | Lambda inline              |
-| **Lesbarkeit**                   | Sehr gut                | Gut (explizites Interface) | Mäßig (lange Signaturen)  |
-| **Wiederverwendbarkeit**         | Hoch                    | Hoch (Interface geteilt)   | Niedrig (pro Aufruf)      |
-| **Anzahl Klassen**               | Minimal                 | +2 (Interface + Impl)      | Optional +1 (Func. Interf.)|
-| **Domain Model Explizitheit**    | —                       | Hoch (Ubiquitous Language) | Niedrig                    |
-| **Empfohlen wenn...**            | Daten vorab ladbar      | Domain entscheidet über Datenbedarf, mehrere Services nutzen gleiche Abfrage | Einzelne, einfache Abfrage bei einem Service |
+| **Complexity of data query**     | Simple (1-2 sources)    | Medium to complex          | Simple (1 source)          |
+| **Dependencies in the domain**   | None                    | Abstract interface         | None                       |
+| **Testability**                  | Trivial                 | Mock the gateway           | Lambda inline              |
+| **Readability**                  | Very good               | Good (explicit interface)  | Moderate (long signatures) |
+| **Reusability**                  | High                    | High (interface shared)    | Low (per call)             |
+| **Number of classes**            | Minimal                 | +2 (interface + impl)      | Optional +1 (func. interf.)|
+| **Domain model explicitness**    | —                       | High (Ubiquitous Language) | Low                        |
+| **Recommended when...**          | Data can be loaded up front | Domain decides what data it needs, several services share the same query | Single, simple query used by one service |
 
-### Entscheidungsbaum
+### Decision Tree
 
 ```
-START: Domain Service braucht Daten, die er nicht hat
+START: Domain Service needs data it does not have
    │
-   ├─ Kann der Application Service alle Daten vorab laden?
-   │     JA → Pure Domain Service (Default)
+   ├─ Can the Application Service load all data up front?
+   │     YES → Pure Domain Service (default)
    │     │
-   │     NEIN ↓
+   │     NO ↓
    │
-   ├─ Entscheidet der Domain Service dynamisch, welche Daten er braucht?
-   │     JA → DomainGateway Pattern
+   ├─ Does the Domain Service decide dynamically which data it needs?
+   │     YES → DomainGateway Pattern
    │     │
-   │     NEIN ↓
+   │     NO ↓
    │
-   ├─ Ist es eine einzelne, einfache Datenabfrage?
-   │     JA → Strategy/Callback Pattern
+   ├─ Is it a single, simple data query?
+   │     YES → Strategy/Callback Pattern
    │     │
-   │     NEIN ↓
+   │     NO ↓
    │
-   └─ Brauchen mehrere Domain Services die gleiche Abfrage?
-         JA → DomainGateway Pattern (wiederverwendbares Interface)
-         NEIN → Strategy/Callback Pattern (leichtgewichtig)
+   └─ Do several Domain Services need the same query?
+         YES → DomainGateway Pattern (reusable interface)
+         NO → Strategy/Callback Pattern (lightweight)
 ```
 
 ---
 
 ## ArchUnit Governance
 
-### DomainGateway-Regeln
+### DomainGateway Rules
 
 ```java
 @ArchTest
@@ -555,12 +555,12 @@ static final ArchRule domain_gateway_interfaces_must_not_extend_output_port =
         .because("DomainGateways are tactical DDD patterns, not hexagonal OutputPorts");
 ```
 
-### Strategy/Callback-Regeln
+### Strategy/Callback Rules
 
-Da das Strategy/Callback Pattern kein eigenes Interface im Domain Layer definiert, sind die bestehenden ArchUnit-Regeln bereits ausreichend:
+Since the Strategy/Callback Pattern defines no interface of its own in the Domain Layer, the existing ArchUnit rules are already sufficient:
 
 ```java
-// Bestehende Regel: Domain Layer hat keine Abhängigkeiten nach außen
+// Existing rule: the Domain Layer has no outward dependencies
 @ArchTest
 static final ArchRule domain_layer_has_no_outward_dependencies =
     classes().that().resideInAnyPackage("..domain..")
@@ -569,12 +569,12 @@ static final ArchRule domain_layer_has_no_outward_dependencies =
         .because("Domain layer must not depend on application, adapter, or infrastructure layers");
 ```
 
-Diese Regel stellt automatisch sicher, dass:
-- Kein `Function`-Parameter auf Adapter- oder Application-Klassen verweist
-- Die Domain nur `java.util.function.*` verwendet (erlaubt unter `java..`)
-- Keine versteckten Abhängigkeiten über Lambdas eingeschleust werden
+This rule automatically ensures that:
+- No `Function` parameter refers to Adapter or Application classes
+- The domain uses only `java.util.function.*` (allowed under `java..`)
+- No hidden dependencies are smuggled in through lambdas
 
-### Zusätzliche Governance für eigene Functional Interfaces
+### Additional Governance for Dedicated Functional Interfaces
 
 ```java
 @ArchTest
@@ -589,7 +589,7 @@ static final ArchRule functional_interfaces_in_domain_must_be_annotated =
 
 ---
 
-## Referenzen
+## References
 
 - [Domain-Driven Design](https://www.domainlanguage.com/ddd/) — Eric Evans (2003), Chapter 5
 - [Implementing Domain-Driven Design](https://www.informit.com/store/implementing-domain-driven-design-9780321834577) — Vaughn Vernon (2013), Chapter 7
