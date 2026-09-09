@@ -122,8 +122,42 @@ DcaLayout.forBasePackage("com.company.project")
     .withUseCaseSuffix("ApplicationService")
     .withControllerSuffix("Page")
     .allowingInDomain("org.jmolecules..")         // extra third-party packages tolerated in the domain
-    .withFrameworkAnnotations(FrameworkAnnotations.spring());
+    .withFrameworkAnnotations(FrameworkAnnotations.jakarta());   // default: spring()
 ```
+
+The rules never name a framework. Where a rule needs one — the stereotype a use case must carry, the
+annotations a domain model must not carry, the transactional annotation, the controller stereotypes,
+a module system's declarations — it reads a *role* from `FrameworkAnnotations`: `injectable`,
+`webController`, `restController`, `transactional`, `eventListener`, `moduleDeclaration`,
+`publishedInterface`, `persistenceEntity`. Each role is a list of fully qualified annotation names.
+Presets fill them: `spring()` (the default), `jakarta()` (CDI scopes, JAX-RS, JTA, JPA), `quarkus()`,
+`micronaut()`, and `none()` for a hand-wired application. Adjust a single role when your platform
+has its own annotation:
+
+```java
+DcaLayout.forBasePackage("com.company.project")
+    .withFrameworkAnnotations(
+        FrameworkAnnotations.jakarta().withRestController("com.company.platform.Endpoint"));
+```
+
+A role may hold several annotations because frameworks overlap: the Spring preset accepts Spring's
+`@Transactional` and JTA's `jakarta.transaction.Transactional` alike (Spring honours both), the
+Micronaut preset its own and JTA's. A rule that requires the role accepts any of them; a rule that
+forbids it forbids all of them.
+
+An empty role is not an error: a rule that forbids it has nothing to forbid, a rule that requires it
+selects nothing, and the rules about transactions then count only the explicit `TransactionBoundary`.
+
+Usually you name no preset at all: `DcaLayout.forBasePackage` detects the framework on the test class
+path and picks the matching preset — Spring when it finds nothing — and the test report names the
+choice as its first entry: `framework annotations: quarkus (detected; also jakarta)`, `spring
+(default)`, `spring (default; undecided: micronaut, quarkus)` when two frameworks of equal standing are
+present and none is chosen, `jakarta (explicit)`. A wrong default is therefore visible instead of silently selecting
+nothing. To choose by hand without code, put `dca.framework=micronaut` into `dca-archunit.properties`;
+an explicit `withFrameworkAnnotations(...)` in code wins over both. A framework the library does not
+know ships its preset in a library of its own — one class implementing
+`FrameworkAnnotationsProvider`, one `META-INF/services` line — and is detected, selectable and reported
+like a built-in.
 
 Without JUnit — from any test framework or a build step:
 
@@ -208,7 +242,10 @@ per bounded context is fine — pass all assemblies. Differences worth knowing:
   that occurs only inside an `async` method. `dotnet test` builds Debug by default.
 - **Context declaration** is a marker class in the context's root namespace carrying
   `[BoundedContext]`, not a `package-info`.
-- **Java rules that check only a Spring annotation** are listed as *not applicable*; six `DCA-NET`
+- **Framework types by role, too.** `FrameworkTypes.AspNetCore()` is the default (controller base
+  class, `[ApiController]`, page-model base, `TransactionScope`); `FrameworkTypes.None()` leaves every
+  role empty, a `with` expression adjusts one. .NET has no injectable stereotype, so the **Java rules
+  that check only a container stereotype** are listed as *not applicable*; six `DCA-NET`
   rules exist only for .NET (synchronous domain, `Async` suffix on port methods, one `ExecuteAsync`,
   records for values and ids).
 - **No baseline dial** (`frozen`): ArchUnitNET has no `FreezingArchRule`; lower such rules to a warning
