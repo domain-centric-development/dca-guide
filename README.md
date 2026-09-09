@@ -619,8 +619,8 @@ public interface CustomerAccountRepository extends Repository<CustomerAccount, C
 
 **Store** — records or queries operational data without an own aggregate lifecycle.
 
-- Exists for **Value Objects, Events, or technical state** without identity-based access
-- Append-/record-style semantics: `record()`, `count()`, `exists()`, `reset()` — no `findById()` / `save()`
+- Exists for **Value Objects, Events, or technical state** without an aggregate lifecycle
+- Append-/record-style semantics: `record()`, `count()`, `exists()`, `reset()` — lookup by key is allowed; no aggregate `save()` / `delete()` semantics
 - Extends the `Store` marker (`Store extends OutputPort`) — never the `Repository` marker
 - Implementation lives in `adapter.outgoing/`
 
@@ -637,13 +637,13 @@ public interface LoginProtectionStore extends Store {
 | Criterion | Repository | Store |
 |---|---|---|
 | Stored object | Aggregate Root | Value Object / operational data |
-| Identity & lifecycle | yes — `findById`, `save`, `delete` | no — `record`, `count`, `exists` |
+| Aggregate lifecycle | yes — `save`, `delete` | no — `record`, `count`, `exists`; lookup by key allowed |
 | Marker | `extends Repository<T, ID>` | `extends Store` |
 | Examples | `CustomerAccountRepository`, `OrderRepository` | `LoginProtectionStore`, `AuditLogStore`, `EventStore` |
 
 **Rules of thumb:**
 
-1. Need `findById()`? → Repository (the object has identity).
+1. Lookup by key (`findById`) is allowed on a Store too; aggregate lifecycle determines Repository semantics.
 2. Need `record()` or `count()`? → Store (the object is recorded, not managed).
 3. In doubt: if the stored object is a `Value` or a record, it's almost always a Store.
 
@@ -820,7 +820,7 @@ public interface OrderRepository extends Repository<Order, OrderId> {
 - Value Objects compared by all attributes
 - Replace entire Value Object instead of modifying
 - Value Objects can be shared freely
-- Value Objects validate themselves
+- Value Objects validate themselves; state the numeric range and rounding of every monetary value object. Reconstitution, deserialisation and default struct construction must not bypass invalid-state checks.
 - Side-effect-free methods only
 
 #### Aggregate Rules
@@ -833,7 +833,7 @@ public interface OrderRepository extends Repository<Order, OrderId> {
 - One transaction modifies one aggregate only
 - Eventual consistency between aggregates
 - Delete aggregate deletes all contained entities
-- Never inject repositories or services into aggregates — pass dependencies as method parameters
+- Never inject repositories or remote services into aggregates. Use cases retrieve facts; domain services calculate over supplied snapshots. A callback parameter does not make external-data responsibility belong on the aggregate.
 - Two factories, two purposes: `create(...)` enforces creation invariants and registers the creation event; `reconstitute(...)` rebuilds a stored aggregate from persisted state and registers nothing. Persistence adapters use only the latter — rebuilding through `create` publishes a phantom creation on the next save
 - Domain events leave the aggregate through one call, `DomainEventPublisher.publishAndClearEvents(aggregate)`, after the save: dispatch everything, clear only when every listener returned. Iterating `domainEvents()` and calling `publish` per event is not the sanctioned form
 - Protect against lost updates with optimistic concurrency: version field on the root, incremented per state change; persistence rejects saves with a stale expected version
@@ -860,7 +860,7 @@ public interface OrderRepository extends Repository<Order, OrderId> {
 
 #### Integration Event Rules (Cross-Bounded Context)
 - Integration Events are DTOs representing domain events for external systems
-- Integration Events defined in `{context}/adapter/outgoing/messaging/event/` package
+- Integration Events defined in `{context}/events/` package
 - Integration Events use past tense + "Event" suffix (e.g., OrderCreatedEvent)
 - Integration Events must be serializable (JSON, Protobuf, Avro)
 - Integration Events include: event ID, timestamp, correlation ID; the schema version and
@@ -900,7 +900,7 @@ START: Something happened in the domain
    │     ↓
    │
    └─ Create Integration Event (for external consumers)
-         - Define in: {context}/adapter/outgoing/messaging/event/
+         - Define in: {context}/events/
          - Name: past tense + "Event" suffix (e.g., OrderCreatedEvent)
          - Contains: only primitives and serializable types
          - Created by: Event Mapper in adapter layer
@@ -916,7 +916,7 @@ START: Something happened in the domain
 - One topic per bounded context or per event type
 - Order inside the use case: `save`, then `publishAndClearEvents` — same transaction, never before the save
 - The publisher dispatches first and clears the aggregate afterwards; the clear is the acknowledgement that every listener saw the event. A throwing listener fails the use case and leaves the events on the aggregate
-- Integration events go through a **transactional outbox**: the publication is written *inside* the aggregate's transaction (Spring Modulith's event publication registry, an outbox table, an in-process stand-in), released to the dispatcher after commit, discarded on rollback. Registering only after commit leaves a crash window between commit and outbox entry
+- Integration events go through a **transactional outbox**: the publication is written *inside* the aggregate's transaction (Spring Modulith's event publication registry, an outbox table, an in-process stand-in), made eligible atomically with commit and followed by an after-commit wakeup, discarded on rollback. Registering only after commit leaves a crash window between commit and outbox entry
 - Delivery is asynchronous and at least once: failures are retried with backoff, permanently failing publications stay visible (`Failed`), outstanding ones are replayed on restart
 
 #### Event Consumption Rules
@@ -954,7 +954,7 @@ START: Something happened in the domain
 - Use case transforms domain objects to DTOs
 - Use case assembles the `*Result` (static factory, use-case body or `*Assembler`); a result carries values, never aggregate roots or entities (`DCA-USE-015`)
 - Command results are small (ids, status, what the caller needs next); the view comes from a query or read model
-- A use case that saves an aggregate publishes and clears its domain events after the save (`publishAndClearEvents`, `DCA-USE-009`) — whether the action raised any or not
+- A use case that saves an aggregate publishes and clears its domain events after the save (`publishAndClearEvents`, `DCA-USE-009`) — unless the aggregate is proven never to register events
 - A query use case carries no transaction and no publisher; it loads and assembles
 - A bulk operation (delete all, archive everything before a date) is a method on the port — the port is freely extensible beyond `findById`/`save`/`deleteById` — that the use case calls without loading or saving a single aggregate: no domain event, no publisher, a declarative transaction. If other contexts must learn about it, one integration event describes the bulk fact
 - A number derived from a list (the count of open items on a list page) is a field of the list query's result, not a use case of its own and not a read model
@@ -1390,6 +1390,12 @@ This structure shows **ALL possible subdivisions** for a fully-featured bounded 
 
 #### Grouping use cases into features
 
+`withOperationContainers("usecases")` (C#: `WithOperationContainers("UseCases")`)
+can declare an organisational segment such as `application/usecases/<usecase>`.
+Configured segments do not contribute to flat/grouped depth; the operation class's
+marker or suffix determines the root. Supporting subfolders are allowed. A context
+mixing flat and feature-grouped operations remains invalid after normalization.
+
 DCA has three scales below the system: the **bounded context**, the **layer**, and the **use case**. When the
 application layer of one context grows — a dozen use-case packages in one flat list — a fourth, optional scale
 fills the gap between layer and use case: the **feature**.
@@ -1725,7 +1731,7 @@ APPLICATION LAYER
 - ✅ **Easy Navigation** - Find everything related to a use case in one place
 - ✅ **Better Scalability** - Structure grows linearly with use cases
 - ✅ **Minimal Coupling** - Use cases are independent, share only via output ports
-- ✅ **Clear Dependencies** - Use case depends on domain + shared output ports only
+- ✅ **Clear Dependencies** - Use case depends on domain + application output ports (local or shared)
 - ✅ **Adapters clearly separated** - `adapter/incoming` and `adapter/outgoing`
 - ✅ **Self-documenting** - Folder name = business operation name
 - ✅ **Team-friendly** - Different developers can work on different use cases independently
@@ -2220,98 +2226,33 @@ public class CompositeArticleDataAdapter implements ArticleDataPort {
 - ✅ Isolates cross-context coupling to adapter layer
 - ❌ Use cases never import OHS directly
 
-### Resolver Pattern
+### Domain services over supplied facts
 
-When **domain logic** needs external data (e.g., current prices) without infrastructure dependencies, use a **Resolver** - a functional interface injected into domain methods.
+An aggregate answers questions about its own state. When a calculation combines facts from other aggregates or
+contexts, the use case retrieves them through output ports and passes immutable snapshots to a domain service.
+Moving a lookup behind a resolver/callback parameter does not change who owns the calculation. Neither the aggregate
+nor the service receives a repository or remote port. A domain-owned `DomainGateway` is an explicit exception with
+an effect and dependency rationale; a pure algorithmic strategy is different from a hidden external lookup.
 
-```
-Application Layer                      Domain Layer
-┌───────────────────────────────┐     ┌─────────────────────────────────┐
-│ Use Case                      │     │ Aggregate                       │
-│ - fetches data via port       │     │ - calculateTotal(Resolver)      │
-│ - builds resolver from data   │────▶│ - validateItems(Resolver)       │
-│ - passes resolver to domain   │     │ - confirm(Resolver)             │
-└───────────────────────────────┘     └─────────────────────────────────┘
-```
-
-**Example:**
 ```java
-// Domain - Functional interface for resolving prices
-@FunctionalInterface
-public interface ArticlePriceResolver {
-    ArticlePrice resolve(ProductId productId);
+// Domain service: the use case has already retrieved the article facts.
+public final class CartPricing implements DomainService {
+    public record Line(ProductId productId, Quantity quantity) implements Value {}
 
-    record ArticlePrice(Money price, boolean isAvailable, int availableStock) implements Value {}
-}
-
-// Domain - Aggregate uses resolver
-public class ShoppingCart extends BaseAggregateRoot<ShoppingCart, CartId> {
-
-    public Money calculateTotal(ArticlePriceResolver resolver) {
-        Money total = Money.zero();
-        for (CartItem item : items) {
-            ArticlePrice price = resolver.resolve(item.productId());
-            total = total.add(price.price().multiply(item.quantity()));
+    public Money calculateTotal(List<Line> lines, Map<ProductId, ArticlePrice> facts) {
+        Money total = Money.euro(0);
+        for (Line line : lines) {
+            total = total.add(facts.get(line.productId()).price().multiply(line.quantity().value()));
         }
         return total;
     }
-
-    public CartValidationResult validateForCheckout(ArticlePriceResolver resolver) {
-        List<ValidationError> errors = new ArrayList<>();
-        for (CartItem item : items) {
-            ArticlePrice price = resolver.resolve(item.productId());
-            if (!price.isAvailable()) {
-                errors.add(ValidationError.productUnavailable(item.productId()));
-            }
-        }
-        return errors.isEmpty() ? CartValidationResult.valid()
-                                : CartValidationResult.withErrors(errors);
-    }
-}
-
-// Application - Use case builds resolver from fetched data
-@Service
-public class CheckoutCartUseCase implements CheckoutCartInputPort {
-    private final ArticleDataPort articleDataPort;  // Output port
-
-    @Override
-    public CheckoutCartResult execute(CheckoutCartCommand command) {
-        ShoppingCart cart = cartRepository.findById(command.cartId())...;
-
-        // Fetch data via port
-        Map<ProductId, ArticleData> articleData =
-            articleDataPort.getArticleData(cart.productIds());
-
-        // Build resolver from fetched data
-        ArticlePriceResolver resolver = productId -> {
-            ArticleData data = articleData.get(productId);
-            return new ArticlePrice(data.currentPrice(), data.isAvailable(), data.availableStock());
-        };
-
-        // Domain uses resolver - no infrastructure dependency
-        CartValidationResult validation = cart.validateForCheckout(resolver);
-        if (!validation.isValid()) {
-            throw new ValidationException(validation.errors());
-        }
-
-        cart.checkout();
-        return CheckoutCartResult.success(cart.id());
-    }
 }
 ```
 
-**Benefits:**
-- ✅ Domain remains **framework-independent** - no external service calls
-- ✅ **Fresh data** - resolver provides current prices at execution time
-- ✅ **Testable** - easily mock resolver in domain tests
-- ✅ **Explicit dependency** - domain method signature shows data need
-
-**Rules:**
-- ✅ Resolver is a `@FunctionalInterface` in domain layer
-- ✅ Resolver's return type (`ArticlePrice`) is a domain Value Object
-- ✅ Use case fetches data via port, builds resolver, passes to domain
-- ❌ Domain never calls external services directly
-- ❌ Resolver never used to modify external state (read-only)
+The service owns the external-fact calculation; the aggregate owns the state transition. Pass the assessment or facts
+into that transition, then save and publish in the use case. Presentation enrichment stays a separate value model.
+`DCA-TAC-002` checks fields, not semantic responsibility: callback parameters need manual review. No marker proves
+that an operation belongs on a particular object.
 
 ### Enriched Read Model Pattern
 
@@ -2390,7 +2331,11 @@ public record CheckoutCart(
 - ✅ **Immutable** - Value Object, safe to pass around
 - ✅ **Real-world metaphor** - like a smart shopping cart display
 
-**Note:** Enriched Read Model is a Value Object, **not** an Aggregate. It has no lifecycle or events.
+**Note:** An enriched read model is a Value Object, not an Aggregate. It has no lifecycle or events.
+Its name follows the domain: `ExtendedCart` and `CartWithCurrentPrices` are equally valid
+alternatives to `EnrichedCart`. Neither an `Enriched` prefix nor record syntax defines the
+role. Implement `Value` and follow its identity, immutability and equality contracts;
+immutable classes with equality are valid too. Enrichment itself is guidance.
 
 ### Factory for Cross-Context Assembly
 
@@ -2679,3 +2624,96 @@ Domain-Centric Architecture stands on the shoulders of giants. Special recogniti
 ### Contributing to This Documentation
 
 This documentation is a living resource. Contributions, corrections, and improvements are welcome. The patterns and practices described here continue to evolve based on real-world experience and community feedback.
+
+Repository and Store interfaces may live in the use-case package that alone needs
+them; move reused ports into `application/shared`. A `*Response` belongs to an
+adapter, incoming or outgoing: a provider response is an outgoing adapter model.
+
+Entity constructors may be public. Construction belongs to the entity itself or
+to an aggregate, entity or cooperating factory in the same context's domain layer.
+Adapters reconstitute through the aggregate's or factory's reconstitution method,
+without raising a creation event. The architecture check cannot identify ownership
+inside a context: another aggregate in that same context passes, so review must
+verify the actual invariant boundary.
+
+### Wiring and domain metadata
+
+Use cases may be registered by configuration or carry an injectable stereotype. A
+static reference does not prove registration, and runtime scanning need not leave one;
+`DCA-NAM-002` therefore only lists unannotated Java operations as an informational
+diagnostic. It never fails. .NET registration is code and has no stereotype counterpart.
+Outgoing adapters may reuse global and own-module infrastructure; another module's
+infrastructure remains private (`DCA-HEX-005`).
+
+Domain metadata is classified by configured roles, including members and composed
+metadata. Types prohibit injectable/container, persistence-entity and transactional
+roles; fields (and .NET properties) prohibit injection-site and persistence-mapping
+roles; methods prohibit transaction and event-listener roles, plus setter injection
+except on events; constructors prohibit injection-site metadata. Java detects direct
+and meta-annotations. .NET checks an attribute's namespace and every base attribute
+type against persistence, injection, transaction and container namespace lists; no
+event-listener attribute role is configured by default. Unclassified metadata is
+allowed by this check, without claiming it harmless. Events, services, factories and
+specifications have exclusive `ADV-004/011/015/018` ownership; `ONI-003` owns the
+remaining domain-model types, so one type is never reported twice for metadata.
+
+### Operation boundaries and declared contracts
+
+Ordinary use cases do not invoke other use cases, whether directly, through an
+input port, or through an application helper. Shared collaborators that do not call
+operations remain valid. `DCA-USE-016` follows dependencies within the module's
+application layer and reports `Caller -> Target [via Helper]`. Explicit coordination
+uses a caller-side exception, for example
+`dca.rule.DCA-USE-016.ignore=^com\.example\.module\.application\.coordinate\.CoordinatorUseCase -> `.
+This permits the coordinator to invoke operations; it does not permit an operation
+to invoke the coordinator, and `DCA-CYC-005` still detects coordination cycles,
+including two operations inside the same feature. No coordinator marker is implied.
+When a reliable exception cannot be expressed, use WARN with a recorded reason and
+review the coordinator's transaction boundaries and partial-failure semantics manually.
+Reflection, container lookups and calls through interfaces outside the InputPort
+hierarchy also require manual review.
+
+The input port describes the complete effective public instance surface (`DCA-USE-017`).
+Declared and inherited business methods, unrelated-interface methods and public
+properties/getters/setters must be in the input-port contract. Constructors, Object
+members and compiler-generated members are exempt; a property accessor is not exempt
+merely because it has a special runtime name. Ordinary, inherited and explicit
+input-port implementations are valid. In .NET, `DCA-NET-003` separately validates
+`IUseCase<TIn,TOut>.ExecuteAsync(input, CancellationToken)` returning `Task<T>` through
+the interface map; it does not count declared public methods.
+
+For every declared ACL interaction, the matching adapter must contain a class that
+uses that upstream's channel contract and the declaring context's own domain or
+application model (`DCA-MAP-008`). Two translators for different upstreams may share
+an adapter package. Evidence for one upstream does not satisfy another interaction.
+This identifies a structural translation site, without proving translation quality.
+
+### Optional events and reliable delivery
+
+Events are optional: an aggregate that never registers a fact needs no publisher dependency. `DCA-USE-009`
+exempts a save only when the repository type argument and the aggregate's complete hierarchy can be inspected
+and no registration is found; unresolved arguments, incomplete scans and undecidable external helpers retain the check.
+Contracts belong in the configured `{context}/events/` segment. Translators belong in `adapter/outgoing/event/`;
+transport and storage are separate adapters. Schema versions belong in integration-event type metadata.
+`DCA-ADV-006/007` use a name heuristic for `schemaVersion`, `eventVersion`, `contractVersion`; a business `version` is allowed.
+
+An in-process registry may deliver domain events within a context **or integration events between contexts**.
+Process location does not determine event classification. Synchronous delivery is atomic only for local resources
+participating in the same transaction; a synchronous remote effect cannot be rolled back with the aggregate.
+For an external effect, either (A) an own-context async consumer receives a durably captured domain fact, or
+(B) an own-context synchronous translator captures an integration contract consumed asynchronously. Cross-context
+consumers always use the integration contract. No broker is required to cross a context boundary.
+
+Capture the publication in the aggregate transaction; establish delivery eligibility with commit, then wake the
+worker after commit. Recovery reads committed publications even when that wakeup was lost. Track completion per
+consumer/effect, retry only unfinished work with bounded attempts and exponential backoff, retain terminal failures
+for inspection and deliberate replay. Reuse the original payload and `eventId + consumer + effect` identity.
+Provider acceptance is the acknowledgement point. If the process stops after acceptance but before local acknowledgement,
+provider-supported idempotency can deduplicate a repeated key; without it, a duplicate external effect remains possible.
+For each concrete effect, decide whether rendering/template version and recipient are captured or resolved later;
+the event snapshot alone does not decide these. No universal email policy is implied.
+
+`DCA-USE-012` checks transaction-boundary evidence in Java and .NET (`FrameworkTypes.TransactionalAttribute` is empty
+by default). Static call graphs cannot prove lambda containment: publishing after an empty boundary in the same
+method passes this check. Verify runtime containment and rollback separately. `.NET DCA-USE-013` remains unavailable;
+review remote-capable calls and transaction scope explicitly.
