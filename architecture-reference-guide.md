@@ -1308,82 +1308,43 @@ public class ProductService {
 
 ### Pattern 1: Domain Event Publishing
 
-**Domain events flow**:
+**Domain events flow** (only when the domain has a fact to publish):
 
 ```java
-// 1. Domain - The event (data)
-// domain/events/OrderPlaced.java
-public class OrderPlaced implements DomainEvent {
-    private final OrderId orderId;
-    private final CustomerId customerId;
-    private final Instant occurredAt;
+// domain/model/DocumentApproved.java
+public record DocumentApproved(UUID eventId, Instant occurredOn, DocumentId documentId)
+        implements DomainEvent {}
 
-    // Constructor, getters
-}
-
-// 2. Domain - Aggregate collects events
-// domain/model/Order.java
-public class Order {
-    private List<DomainEvent> uncommittedEvents = new ArrayList<>();
-
-    public static Order create(CustomerId customerId, List<OrderLine> lines) {
-        Order order = new Order(/* ... */);
-        order.uncommittedEvents.add(new OrderPlaced(order.getId(), customerId));
-        return order;
-    }
-
-    public List<DomainEvent> getUncommittedEvents() {
-        return List.copyOf(uncommittedEvents);
-    }
-
-    public void clearEvents() {
-        uncommittedEvents.clear();
+// domain/model/Document.java — inherits event collection from the published building blocks.
+public class Document extends BaseAggregateRoot<Document, DocumentId> {
+    private final DocumentId id;
+    public Document(DocumentId id) { this.id = id; }
+    @Override public DocumentId id() { return id; }
+    public void approve() {
+        // Validate the state transition, then record its fact.
+        registerEvent(new DocumentApproved(UUID.randomUUID(), Instant.now(), id));
     }
 }
 
-// 3. Application - Port for publishing
-// application/ports/out/DomainEventPublisher.java
-public interface DomainEventPublisher {
-    void publish(DomainEvent event);
-    void publishAll(List<DomainEvent> events);
-}
-
-// 4. Application - Service uses publisher
-// application/services/CreateOrderService.java
-public class CreateOrderService implements CreateOrderUseCase {
-    private final OrderRepository repository;
-    private final DomainEventPublisher eventPublisher;
-
-    @Override
-    public OrderId execute(CreateOrderCommand command) {
-        Order order = Order.create(command.customerId(), command.lines());
-        repository.save(order);
-
-        // Publish collected events
-        eventPublisher.publishAll(order.getUncommittedEvents());
-        order.clearEvents();
-
-        return order.getId();
-    }
-}
-
-// 5. Adapter - Implementation
-// adapters/out/messaging/KafkaEventPublisher.java
-@Component
-public class KafkaEventPublisher implements DomainEventPublisher {
-    private final KafkaTemplate<String, String> kafka;
-
-    @Override
-    public void publish(DomainEvent event) {
-        kafka.send("domain-events", serialize(event));
-    }
-
-    @Override
-    public void publishAll(List<DomainEvent> events) {
-        events.forEach(this::publish);
-    }
+// application/approve/ApproveUseCase.java — imports the published DomainEventPublisher port.
+// Spring example: constructor dependencies omitted; a real transaction manager must be configured.
+@Transactional
+public ApproveResult execute(ApproveCommand command) {
+    Document document = repository.findById(command.documentId()).orElseThrow();
+    document.approve();
+    repository.save(document);
+    eventPublisher.publishAndClearEvents(document);
+    return new ApproveResult(document.id());
 }
 ```
+
+Use `dev.domaincentric.dca.buildingblocks.hexagonal.port.out.DomainEventPublisher`; do not redeclare it.
+Its `publishAndClearEvents(AggregateRoot<?, ?>)` dispatches synchronously and clears only after successful
+listeners. Spring projects use the published `SpringDomainEventPublisher` implementation from `dca-spring`.
+An own-context outgoing adapter listens to the domain fact and captures an integration contract **inside the
+same transaction**. The contract lives in the configured `{context}/events/` segment; the translator lives in
+`adapter/outgoing/event/`. Async delivery follows commit and acknowledges per listener. Do not send raw domain
+events across context boundaries. A publisher is unnecessary for an aggregate that never registers events.
 
 ### Pattern 2: Query Separation (CQRS Light)
 

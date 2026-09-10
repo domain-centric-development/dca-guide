@@ -120,7 +120,7 @@ com.company.project/
 
 ### Event Patterns
 - **Domain Events** - Internal to bounded context (in `domain/event/`)
-- **Integration Events** - Cross-context DTOs (in `adapter/outgoing/messaging/event/`)
+- **Integration Events** - Cross-context DTOs (in `events/`)
 - **Event Mappers** - Convert domain events to integration events
 
 ## Naming Conventions
@@ -237,3 +237,27 @@ Examples assume Java 25 with:
 - Records for Value Objects and DTOs
 - Modern Java features (var, text blocks where appropriate)
 - Spring Boot 4.x conventions
+
+A domain term such as `PortfolioManager` is valid; the remaining technical suffix
+restrictions still apply. Operation implementations are discovered by InputPort
+assignability or the configured use-case suffix. Optional organisational segments
+are configured with `withOperationContainers(...)` / `WithOperationContainers(...)`
+and removed before measuring flat/grouped operation depth. Supporting subfolders do
+not define operations. One context must still use one depth. A Repository or Store
+used by one use case may live with it; `application/shared` is the reuse default.
+
+WP-34 policy: use-case stereotypes are optional; configuration registration is equally valid.
+NAM-002 is a non-failing Java diagnostic, not a wiring guarantee. Outgoing adapters may
+reuse global/own infrastructure. Domain metadata rules classify configured roles on
+types and members (including composed metadata), allow unclassified metadata, and assign
+exclusive ownership to ADV-004/011/015/018 before ONI-003.
+
+WP-35: USE-016 forbids direct/input-port/helper-mediated operation invocation except
+explicit caller-side coordinator exclusions; CYC-005 checks operation slices even within
+one feature. USE-017 maps the effective public surface to input ports (inherited/explicit
+implementations valid, unrelated methods/properties forbidden). MAP-008 requires a
+translation site for each declared upstream/channel; shared adapter packages are allowed.
+
+WP-36 policy (2026-09-09): integration contracts use the configured events segment only; translators use adapter/outgoing/event. Events are optional with conservative USE-009 proof. USE-012 exists in both libraries; static boundary evidence is not runtime containment. Delivery is per consumer/effect with snapshot replay, bounded retry and explicit manual recovery; never claim local keys alone prevent external duplicates.
+
+2026-09-09 WP-38: shared resolved-preset contract drives bootstrap/scaffold imports and wiring; publisher examples use the published API, event contracts use events/, business version remains valid. Scaffold Spring/none/.NET smoke and canonical/mirror catalog checks passed.
