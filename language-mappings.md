@@ -199,7 +199,7 @@ Use case folders are lowercase in Java (`placeorder`) because Java packages are;
 | Component registration | `@Service`, `@Component`, component scan | explicit `services.AddScoped<IPlaceOrderInputPort, PlaceOrderUseCase>()` in the context's `Infrastructure/` |
 | Configuration per context | `@Configuration` class in `{context}/infrastructure/` | extension method `Add{Context}Context()` called by the composition root |
 | Module verification | Spring Modulith `ApplicationModules.verify()` | project references (a context cannot reference another's internals) + the `DCA-STR` / `DCA-CYC` rules |
-| Transaction boundary | `@Transactional` on the use case, or `TransactionBoundary.inTransaction(...)` (`DCA-USE-012`) | `ITransactionBoundary.InTransactionAsync(...)` or a decorator around `IUseCase` — no attribute; `DCA-USE-012` is not applicable |
+| Transaction boundary | `@Transactional` on the use case, or `TransactionBoundary.inTransaction(...)` (`DCA-USE-012`) | `ITransactionBoundary.InTransactionAsync(...)` or a decorator around `IUseCase` — no attribute; `DCA-USE-012` checks that every entry path to a publishing use case passes through the boundary call (`DCA-USE-013` is not applicable) |
 | Domain event dispatch | `ApplicationEventPublisher`; `@ApplicationModuleListener` / `@TransactionalEventListener(AFTER_COMMIT)` | in-process dispatcher behind `IDomainEventPublisher`; consumers subscribe explicitly |
 | Integration events | Modulith event publication registry, or outbox | outbox table / `Channel<T>` queue drained after commit, with retry |
 | Event consumer | `@ApplicationModuleListener void on(OrderCompletedEvent e)` | `*EventConsumer` class registered as a subscriber; async |

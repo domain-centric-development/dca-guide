@@ -290,7 +290,7 @@ carry, who assembles it and how big it should be — follows seven sentences.
    in the use-case folder or `application/shared`. Never `*Mapper`, `*Converter` (`DCA-NAM-008`), never
    `Helper`.
 5. **Large aggregates hand out a snapshot, not a getter parade.** A `Value` record in `domain/readmodel`, built
-   by `Snapshot.from(aggregate)` (`DCA-TAC-022`). The snapshot *is* the result field; the use case does not
+   by `Snapshot.from(aggregate)` — a value like any other (`DCA-TAC-008`…`DCA-TAC-012`). The snapshot *is* the result field; the use case does not
    flatten it a second time.
 6. **The active-domain restriction is asymmetric.** An incoming adapter may read the domain values and read
    models a `Result` delivers and format them for HTTP, HTML, MCP or another transport. It must not inject or
