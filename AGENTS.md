@@ -73,6 +73,8 @@ The repository contains interconnected markdown documents:
 - **team-topologies.md** - Organizational patterns and team structure alignment
 
 ### Templates
+- **factory.md** - Delivering one story: the backlog contract, outcome events, the six stages with their
+  hand-over files, the gates between them, and the two questions a run must hand to a human
 - **adr-template.md** - Architecture Decision Record template
 
 ## Key Architectural Patterns
