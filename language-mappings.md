@@ -199,7 +199,7 @@ Use case folders are lowercase in Java (`placeorder`) because Java packages are;
 | Component registration | `@Service`, `@Component`, component scan | explicit `services.AddScoped<IPlaceOrderInputPort, PlaceOrderUseCase>()` in the context's `Infrastructure/` |
 | Configuration per context | `@Configuration` class in `{context}/infrastructure/` | extension method `Add{Context}Context()` called by the composition root |
 | Module verification | Spring Modulith `ApplicationModules.verify()` | project references (a context cannot reference another's internals) + the `DCA-STR` / `DCA-CYC` rules |
-| Transaction boundary | `@Transactional` on the use case, or `TransactionBoundary.inTransaction(...)` (`DCA-USE-012`) | `ITransactionBoundary.InTransactionAsync(...)` or a decorator around `IUseCase` — no attribute; `DCA-USE-012` checks that every entry path to a publishing use case passes through the boundary call (`DCA-USE-013` is not applicable) |
+| Transaction boundary | `@Transactional` on the use case, or `TransactionBoundary.inTransaction(...)` (`DCA-USE-012`) | `ITransactionBoundary.InTransactionAsync(...)` or a decorator around `IUseCase` — no attribute; `DCA-USE-012` checks that every entry path to a saving, deleting or publishing method passes through the boundary call (`DCA-USE-013` is not applicable) |
 | Domain event dispatch | `ApplicationEventPublisher`; `@ApplicationModuleListener` / `@TransactionalEventListener(AFTER_COMMIT)` | in-process dispatcher behind `IDomainEventPublisher`; consumers subscribe explicitly |
 | Integration events | Modulith event publication registry, or outbox | outbox table / `Channel<T>` queue drained after commit, with retry |
 | Event consumer | `@ApplicationModuleListener void on(OrderCompletedEvent e)` | `*EventConsumer` class registered as a subscriber; async |
@@ -257,9 +257,10 @@ See [ArchUnit Governance](./archunit-governance.md) for the rule categories and 
 - **No `package-info`.** The context marker class is the one file a Java reader will not recognise.
 - **No baseline dial** in .NET governance; lower a rule to a warning instead.
 - **Transactions are explicit** in .NET (`ITransactionBoundary`, or a decorator around `IUseCase`);
-  Java may use `@Transactional`. The Java rule `DCA-USE-012` guards Spring's after-commit relay, which
-  is skipped silently without an active transaction; it is *not applicable* in .NET, where after-save
-  delivery is the job of the integration-event outbox adapter, not of the use case.
+  Java may use `@Transactional`. `DCA-USE-012` demands the boundary in both languages for every use case
+  that saves or deletes an aggregate or publishes domain events — in Java it also guards Spring's
+  after-commit relay, which is skipped silently without an active transaction; in .NET the evidence is
+  the `InTransactionAsync` call or the configured transactional attribute on every entry path.
 - **Container attributes** (`@Upstreams`, `@Partnerships`) do not exist in C# — attributes repeat.
 
 Everything not listed here is the same architecture, spelled the way the language spells it.
