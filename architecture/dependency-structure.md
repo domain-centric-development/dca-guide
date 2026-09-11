@@ -15,8 +15,8 @@ flowchart TD
         PI["<b>Input ports</b><br>CreateOrderInputPort"]
         UC["<b>Use cases</b><br>CreateOrderUseCase"]
         PO["<b>Output ports</b><br>OrderRepository · PaymentGateway · EventPublisher"]
-        PI -.-> UC
-        UC -.-> PO
+        PI -. implemented by .-> UC
+        UC -- calls --> PO
     end
     subgraph DOMAIN["DOMAIN — zero dependencies"]
         DM["Entities · Value objects · Aggregates<br>Domain services · Domain events · Specifications"]
@@ -38,6 +38,7 @@ sequenceDiagram
     participant O as Order<br>(domain aggregate)
     participant R as OrderRepositoryAdapter<br>(adapter/outgoing)
     participant DB as Spring Data JPA<br>(infrastructure)
+    participant P as DomainEventPublisher<br>(adapter/outgoing)
 
     Client->>C: POST /orders
     Note over C: validates input,<br>builds CreateOrderCommand
@@ -50,6 +51,8 @@ sequenceDiagram
     R->>DB: persist(OrderJpaEntity)
     DB-->>R: ok
     R-->>U: saved order
+    U->>P: publish(order.domainEvents())
+    Note over U,P: publication is captured in the same transaction<br>as the aggregate — delivery follows the commit
     U-->>C: CreateOrderResult
     C-->>Client: 201 Created
 ```
