@@ -464,6 +464,26 @@ Contracts belong in the configured `{context}/events/` segment. Translators belo
 transport and storage are separate adapters. Schema versions belong in integration-event type metadata.
 `DCA-ADV-006/007` use a name heuristic for `schemaVersion`, `eventVersion`, `contractVersion`; a business `version` is allowed.
 
+**What that segment is, and what it is not.** The outgoing messaging segment is the *publishing* side
+of this context's own contracts: the translator, the relay that drains the publication store, the
+transport client. It is not a bucket for everything with "event" in the name.
+
+A subscriber that forwards a fact to an external system is not part of it, and is not one package at
+all. It is two:
+
+- **the subscription** — an incoming adapter, because consuming is arriving traffic. It receives the
+  contract, translates it, and calls an input port. It performs no external effect itself.
+- **the effect** — an outgoing adapter named after the partner it calls, behind an output port the
+  use case declares: `adapter/outgoing/email/`, `adapter/outgoing/erp/`.
+
+The event is the *trigger* of that effect, never its destination. Reading it the other way produces
+the class every codebase eventually regrets: a listener that deserialises a message and calls a
+third-party API in the same method, with no port between them, no use case that can be tested, and a
+retry policy that belongs to two systems at once.
+
+When one broker client serves both directions, it is infrastructure, not an adapter — global or the
+module's own, and an outgoing adapter may use both (`DCA-HEX-005`).
+
 An in-process registry may deliver domain events within a context **or integration events between contexts**.
 Process location does not determine event classification. Synchronous delivery is atomic only for local resources
 participating in the same transaction; a synchronous remote effect cannot be rolled back with the aggregate.
