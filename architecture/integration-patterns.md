@@ -221,23 +221,27 @@ public class AddItemToCartUseCase {
 
 When a context needs data from **multiple** Open Host Services, use a **Composite Adapter** to aggregate the data in one place.
 
+```mermaid
+flowchart LR
+    subgraph CONSUMER["CONSUMER CONTEXT"]
+        direction TB
+        PORT["application/shared/<br><b>ArticleDataPort</b><br><i>one output port</i>"]
+        ADP["adapter/outgoing/product/<br><b>CompositeArticleDataAdapter</b>"]
+        ADP -. implements .-> PORT
+    end
+    subgraph PROVIDERS["PROVIDER CONTEXTS"]
+        direction TB
+        P1["ProductCatalog<br><i>OHS — names</i>"]
+        P2["Pricing<br><i>OHS — prices</i>"]
+        P3["Inventory<br><i>OHS — stock</i>"]
+    end
+    ADP --> P1
+    ADP --> P2
+    ADP --> P3
 ```
-Context A (Consumer)                    Provider Contexts
-┌─────────────────────────────────┐    ┌───────────────────┐
-│ application/shared/             │    │ ProductCatalog    │
-│   ArticleDataPort               │    │ (OHS - names)     │
-│   (output port)                 │    └───────────────────┘
-└────────────────┬────────────────┘    ┌───────────────────┐
-                 │ implements          │ Pricing           │
-                 ▼                     │ (OHS - prices)    │
-┌─────────────────────────────────┐    └───────────────────┘
-│ adapter/outgoing/product/       │    ┌───────────────────┐
-│   CompositeArticleDataAdapter   │───▶│ Inventory         │
-│   - ProductCatalogService       │    │ (OHS - stock)     │
-│   - PricingService              │    └───────────────────┘
-│   - InventoryService            │
-└─────────────────────────────────┘
-```
+
+The consumer's application layer sees one port and one shape of data. That three contexts were
+asked, and in which order, is the adapter's business alone.
 
 **Example:**
 ```java
@@ -307,15 +311,20 @@ that an operation belongs on a particular object.
 
 When you need to **combine persisted data with fresh external data** for rich domain logic (e.g., comparing original price to current price), create an **Enriched Read Model**.
 
+```mermaid
+flowchart LR
+    A["<b>CheckoutLineItem</b><br><i>persisted</i><br>unitPrice · quantity · productName"]
+    B["<b>CheckoutArticle</b><br><i>fresh, from the provider</i><br>currentPrice · isAvailable · availableStock"]
+    C["<b>EnrichedCheckoutLineItem</b><br><i>read model</i><br>hasPriceChanged() · priceDifference()<br>isValidForCheckout()"]
+    A --> C
+    B --> C
 ```
-Persisted Data                Fresh External Data        Enriched Read Model
-┌─────────────────┐          ┌─────────────────┐        ┌─────────────────────────┐
-│ CheckoutLineItem│    +     │ CheckoutArticle │   =    │ EnrichedCheckoutLineItem│
-│ - unitPrice     │          │ - currentPrice  │        │ - hasPriceChanged()     │
-│ - quantity      │          │ - isAvailable   │        │ - priceDifference()     │
-│ - productName   │          │ - availableStock│        │ - isValidForCheckout()  │
-└─────────────────┘          └─────────────────┘        └─────────────────────────┘
-```
+
+The read model answers questions neither side can answer alone. It is a value object in
+`{context}/domain/model/`, assembled by a static factory from the aggregate plus a plain carrier of
+the external data — fetched through this context's own output port, never by importing the other
+context. No identity, no lifecycle, no events: it owns the read rules that span both sides, and
+nothing else.
 
 **Example:**
 ```java
