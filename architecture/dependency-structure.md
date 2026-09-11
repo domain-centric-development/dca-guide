@@ -56,55 +56,38 @@ sequenceDiagram
 
 ## Cross-Bounded Context Communication
 
+```mermaid
+flowchart TB
+    subgraph ORDER["ORDER CONTEXT"]
+        direction TB
+        UC["CreateOrderUseCase<br><i>application</i>"]
+        DE["OrderCreated<br><i>domain event</i>"]
+        MAP["OrderEventMapper<br><i>adapter/outgoing</i>"]
+        IE["OrderCreatedEvent<br><i>integration event</i>"]
+        UC -- publishes --> DE
+        DE -- via DomainEventPublisher --> MAP
+        MAP -- translates --> IE
+    end
+
+    BROKER{{"Message broker<br>Kafka · RabbitMQ · in-process registry"}}
+
+    subgraph INVENTORY["INVENTORY CONTEXT"]
+        direction TB
+        CONS["OrderEventConsumer<br><i>adapter/incoming</i>"]
+        ACL["ExternalEventToCommandMapper<br><i>anti-corruption layer</i>"]
+        PORT["ReserveStockInputPort<br><i>application</i>"]
+        UC2["ReserveStockUseCase<br><i>application</i>"]
+        CONS -- via ACL --> ACL
+        ACL -- builds ReserveStockCommand --> PORT
+        PORT -. implemented by .-> UC2
+    end
+
+    IE --> BROKER --> CONS
 ```
-Order Context                                     Inventory Context
-┌───────────────────────┐                        ┌─────────────────────┐
-│ CreateOrderUseCase    │                        │ ReserveStockUseCase │
-│ (application)         │                        │ (application)       │
-└───────────┬───────────┘                        └──────────┬──────────┘
-            │ publishes                                     ↑ calls
-            ↓                                               │
-┌───────────────────────┐                                   │
-│ OrderCreated          │                                   │
-│ (domain event)        │                                   │
-└───────────┬───────────┘                                   │
-            │ via DomainEventPublisher                      │
-            ↓                                               │
-┌───────────────────────┐                                   │
-│ OrderEventMapper      │                                   │
-│ (adapter/outgoing)    │                                   │
-└───────────┬───────────┘                                   │
-            │ converts to DTO                               │
-            ↓                                               │
-┌───────────────────────┐                                   │
-│ OrderCreatedEvent     │                                   │
-│ (integration event)   │                                   │
-└───────────┬───────────┘                                   │
-            │                                               │
-            └────────→ Message Broker ─────────┐            │
-                      (Kafka/RabbitMQ)         │            │
-                                               │            │
-                                               ↓            │
-                          ┌─────────────────────────────────┐
-                          │ OrderEventConsumer              │
-                          │ (adapter/incoming)              │
-                          └──────────┬──────────────────────┘
-                                     │ via ACL
-                                     ↓
-                          ┌─────────────────────────────────┐
-                          │ ExternalEventToCommandMapper    │
-                          │ (Anti-Corruption Layer)         │
-                          │ converts to ReserveStockCommand │
-                          └─────────────────────────────────┘
-                                     │
-                          ┌──────────┘
-                          │
-                          ↓
-                    ┌────────────────────┐
-                    │ ReserveStockInput  │
-                    │ Port (application) │
-                    └────────────────────┘
-```
+
+Neither context knows the other's model. What crosses the boundary is the
+integration contract; the anti-corruption layer turns it into this context's own
+command before any use case sees it.
 
 ## Complete Cross-Context Event Flow
 
