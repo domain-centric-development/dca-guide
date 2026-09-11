@@ -136,28 +136,17 @@ They only see public Integration Events like OrderCreatedEvent.
 
 ### Decision Tree: When to Decompose?
 
-```
-START: One Bounded Context
-
-↓
-
-Question 1: Is there a clear subdomain boundary within the BC?
-├─ NO → Keep as single service (modular monolith)
-└─ YES → Continue ↓
-
-Question 2: Do different parts have different scalability needs?
-├─ NO → Consider keeping as single service
-└─ YES → Continue ↓
-
-Question 3: Can you clearly define service boundaries and contracts?
-├─ NO → Keep as single service until boundaries are clear
-└─ YES → Continue ↓
-
-Question 4: Is your team mature enough to handle distributed complexity?
-├─ NO → Start with modular monolith, extract services later
-└─ YES → Consider multi-service decomposition ↓
-
-DECISION: Split into multiple services within same Bounded Context
+```mermaid
+flowchart TD
+    START(["One bounded context"]) --> Q1{"A clear subdomain boundary<br>inside the context?"}
+    Q1 -- no --> KEEP1["Keep one service —<br>a modular monolith"]
+    Q1 -- yes --> Q2{"Do the parts have different<br>scalability needs?"}
+    Q2 -- no --> KEEP2["Probably keep one service"]
+    Q2 -- yes --> Q3{"Can you state the service<br>boundaries and contracts?"}
+    Q3 -- no --> KEEP3["Keep one service until<br>the boundaries are clear"]
+    Q3 -- yes --> Q4{"Is the team ready for<br>distributed operation?"}
+    Q4 -- no --> KEEP4["Start as a modular monolith,<br>extract services later"]
+    Q4 -- yes --> SPLIT["Several services inside<br>the same bounded context"]
 ```
 
 **Default Recommendation:** Start with **one service per bounded context** (modular monolith or single SCS). Extract services later when needed.
@@ -294,26 +283,21 @@ order-bounded-context/ (Git Repository)
 ```
 
 **Contrast with Integration Events:**
+```mermaid
+flowchart TD
+    subgraph ORDER["ORDER CONTEXT — its own service"]
+        UC["CreateOrderUseCase"] --> IE["OrderCreatedEvent<br><i>integration contract</i>"]
+    end
+    IE --> BROKER{{"Message broker<br><i>a Kafka topic, for example</i>"}}
+    subgraph INV["INVENTORY CONTEXT — its own service"]
+        CONS["Event consumer"] --> ACL["Anti-corruption layer<br>OrderCreatedEvent → ReserveStockCommand"]
+        ACL --> UC2["ReserveStockUseCase"]
+    end
+    BROKER --> CONS
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│  ORDER BC → INVENTORY BC (Different Bounded Contexts)           │
-│                                                                 │
-│  Order Management Service (Order BC)                            │
-│      │                                                          │
-│      ↓ publishes: OrderCreatedEvent (Integration Event)         │
-│      │                                                          │
-│      ↓ via External Message Broker (Kafka topic)                │
-│      │                                                          │
-│      ↓                                                          │
-│  Inventory Service (Inventory BC)                               │
-│      │                                                          │
-│      ↓ ACL converts: OrderCreatedEvent → ReserveStockCommand    │
-│      │                                                          │
-│      ↓ ReserveStockUseCase                                      │
-│                                                                 │
-│  ACL needed - different ubiquitous languages across BCs         │
-└─────────────────────────────────────────────────────────────────┘
-```
+
+The anti-corruption layer is not optional here: the two contexts speak different ubiquitous
+languages, and the contract is written in the producer's.
 
 ## Deployment Pattern Comparison
 
@@ -436,26 +420,13 @@ Order Bounded Context
 
 ### Recommended Evolution
 
-```
-Phase 1: Modular Monolith
-└─ Start here for new projects
-   └─ Clear module boundaries
-      └─ Domain events between modules
-
-Phase 2: Extract First SCS
-└─ When one module has very different needs
-   └─ Extract highest-value module first
-      └─ Keep rest as monolith
-
-Phase 3: Multiple SCS
-└─ Extract additional SCS as needed
-   └─ Based on team structure
-      └─ Based on scaling needs
-
-Phase 4: Multi-Service BC (rarely needed)
-└─ Only when BC is very large
-   └─ And subdomain boundaries are clear
-      └─ And team is very mature
+```mermaid
+flowchart TD
+    P1["<b>Phase 1 — modular monolith</b><br>where new projects start<br>clear module boundaries, events between them"]
+    P2["<b>Phase 2 — extract the first SCS</b><br>when one module's needs diverge<br>highest value first, the rest stays"]
+    P3["<b>Phase 3 — several SCS</b><br>driven by team structure<br>and by what actually has to scale"]
+    P4["<b>Phase 4 — several services in one context</b><br>rarely needed: only for a very large context<br>with clear subdomain boundaries and a ready team"]
+    P1 --> P2 --> P3 --> P4
 ```
 
 **Anti-Pattern:** Starting with microservices before understanding domain boundaries.

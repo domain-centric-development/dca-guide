@@ -507,27 +507,17 @@ The call in the Use Case stays identical — Java's lambda compatibility ensures
 
 ### Decision Tree
 
-```
-START: Domain Service needs data it does not have
-   │
-   ├─ Can the Application Service load all data up front?
-   │     YES → Pure Domain Service (default)
-   │     │
-   │     NO ↓
-   │
-   ├─ Does the Domain Service decide dynamically which data it needs?
-   │     YES → DomainGateway Pattern
-   │     │
-   │     NO ↓
-   │
-   ├─ Is it a single, simple data query?
-   │     YES → Strategy/Callback Pattern
-   │     │
-   │     NO ↓
-   │
-   └─ Do several Domain Services need the same query?
-         YES → DomainGateway Pattern (reusable interface)
-         NO → Strategy/Callback Pattern (lightweight)
+```mermaid
+flowchart TD
+    START(["A domain service needs data it does not have"]) --> Q1{"Can the use case load<br>all of it up front?"}
+    Q1 -- yes --> PURE["<b>Pure domain service</b><br>the default: hand it the facts"]
+    Q1 -- no --> Q2{"Does the domain service decide<br>while running which data it needs?"}
+    Q2 -- yes --> GW["<b>DomainGateway</b>"]
+    Q2 -- no --> Q3{"A single, simple query?"}
+    Q3 -- no --> GW
+    Q3 -- yes --> Q4{"Do several domain services<br>need that same query?"}
+    Q4 -- yes --> GW2["<b>DomainGateway</b><br>one reusable interface"]
+    Q4 -- no --> CB["<b>Strategy / callback</b><br>lightweight, one call site"]
 ```
 
 ---

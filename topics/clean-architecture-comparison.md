@@ -58,16 +58,25 @@ Both architectures share fundamental principles:
 - Inner layers have zero dependencies on outer layers
 - Core business logic is independent
 
+```mermaid
+flowchart BT
+    subgraph CA["Clean Architecture"]
+        direction BT
+        F["Frameworks"] --> C["Controllers"] --> U["Use Cases"] --> E["Entities"]
+    end
+    subgraph DCA["Domain-Centric Architecture"]
+        direction BT
+        I["Infrastructure"] --> A["Adapters"] --> P["Application"] --> D["Domain"]
+    end
+    F -.->|same ring| I
+    C -.-> A
+    U -.-> P
+    E -.-> D
 ```
-Clean Architecture:        Domain-Centric Architecture:
-Entities                   Domain
-    ↑                          ↑
-Use Cases                  Application
-    ↑                          ↑
-Controllers                Adapters
-    ↑                          ↑
-Frameworks                 Infrastructure
-```
+
+The rings are the same and so is the direction — arrows point inward, and nothing inner knows
+anything outer. The names differ, and one thing behind them does: what DCA calls Domain is a rich
+model with aggregates and invariants, not only Entities.
 
 ### 2. Separation of Concerns
 
