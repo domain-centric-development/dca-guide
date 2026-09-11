@@ -460,7 +460,7 @@ public class StartCheckoutUseCase implements StartCheckoutInputPort {
 Events are optional: an aggregate that never registers a fact needs no publisher dependency. `DCA-USE-009`
 exempts a save only when the repository type argument and the aggregate's complete hierarchy can be inspected
 and no registration is found; unresolved arguments, incomplete scans and undecidable external helpers retain the check.
-Contracts belong in the configured `{context}/events/` segment. Translators belong in `adapter/outgoing/event/`;
+Contracts belong in the configured `{context}/events/` segment. Translators belong in an outgoing adapter named after its channel — `event/` when delivery is in-process, `messaging/` once transport or an outbox relay lives there;
 transport and storage are separate adapters. Schema versions belong in integration-event type metadata.
 `DCA-ADV-006/007` use a name heuristic for `schemaVersion`, `eventVersion`, `contractVersion`; a business `version` is allowed.
 
