@@ -195,8 +195,9 @@ counts only where its content changed or its timestamp is younger than the invoc
 the filesystem's own clock rather than the process's. And a report that names a *sibling* of the
 mapped test says nothing about it: where a runner reports display names instead of method names,
 the mapping has to come from the declaration in the code, never from membership of the same class.
-A class with two reported cases and no name that matches is no evidence at all — attributing either
-of them would let one test's outcome decide another's criterion.
+Not even a single reported case settles it — a filtered run is no promise that the filter was
+honoured, so that one case may be the sibling, and attributing it would let one test's outcome
+decide another's criterion. Either a name matches, or there is no evidence.
 
 **A test that was never red proves nothing.** The test stage records which selectors it saw fail;
 the build gate accepts a green test only if it is in that record. This is what closes the gap
