@@ -1,7 +1,13 @@
-// Two checks over the guide's own documents.
+// Four checks over the guide's own documents. Each of them catches something that
+// renders without complaint and is therefore invisible in review.
 //
-// 1. Every ```mermaid block must parse.
-// 2. Box-drawing characters may only appear inside a ```text fence.
+// 1. Every ```mermaid block must parse — a broken one is a red box on GitHub.
+// 2. Box-drawing characters may only appear inside a ```text fence, so a tree stays a
+//    tree and a structural diagram nobody converted cannot hide in an undeclared block.
+// 3. In a filesystem tree, a directory ends with a slash. Without it a reader cannot tell
+//    a package from an extensionless file.
+// 4. The project's own example root is one placeholder: com.company.project. A foreign package in
+//    an example — the thing a rule excludes — is left alone.
 //
 // A broken diagram is invisible until someone opens the page: GitHub renders a
 // red box where the picture should be, and the build that produced it stayed
@@ -16,6 +22,12 @@ import { JSDOM } from "jsdom";
 const QUOTE = /^((?:\s*>)+\s?)?(.*)$/;
 const FENCE = /^(\s*)(`{3,})(.*)$/;
 const BOX = /[\u2500-\u257F\u25B2\u25BC\u25C4\u25BA]/;
+const ENTRY = /^[\s\u2502]*[\u251C\u2514]\u2500\u2500\s+(\S+)/;
+const FILENAME = /\.[A-Za-z0-9]{1,6}$/;
+const DIRNAME = /^[a-z0-9{][a-z0-9._{}*-]*$/;
+// Only the project's *own* root is constrained: a package declaration, or the root line of a tree.
+// A foreign package in an example ("com.company.legacy" as the thing a rule excludes) is the point.
+const OWN_ROOT = /^\s*(?:package\s+)?(com\.company\.(?!project\b)[a-z][\w.]*)\s*;?\s*$/;
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
 
@@ -81,12 +93,61 @@ function strayBoxArt(dir) {
   return found;
 }
 
+// A block is a filesystem tree when its entries prove it: a file extension, or a path segment.
+// A list drawn with tree characters ("Tests (unit, integration)") proves nothing and is left alone.
+function treeFindings(dir) {
+  const found = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+    if (entry.name.startsWith(".") || entry.name === "node_modules") continue;
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) { found.push(...treeFindings(full)); continue; }
+    if (!entry.name.endsWith(".md")) continue;
+    const rel = path.relative(root, full);
+    const lines = fs.readFileSync(full, "utf8").split("\n");
+
+    for (let i = 0; i < lines.length; i++) {
+      const open = FENCE.exec(QUOTE.exec(lines[i])[2]);
+      if (!open || open[3].trim() !== "text") continue;
+      let j = i + 1;
+      const body = [];
+      while (j < lines.length) {
+        const close = FENCE.exec(QUOTE.exec(lines[j])[2]);
+        if (close && !close[3].trim() && close[2].length >= open[2].length) break;
+        body.push({ line: j + 1, text: lines[j] });
+        j++;
+      }
+      const names = body.map((b) => ENTRY.exec(b.text)).map((m) => (m ? m[1] : null));
+      const proof = names.filter((n) => n && (FILENAME.test(n) || n.endsWith("/") || n.replace(/\/$/, "").includes("/"))).length;
+      const isTree = proof >= 2 && proof >= names.filter(Boolean).length * 0.5;
+      if (isTree) {
+        body.forEach((b, k) => {
+          const name = names[k];
+          if (!name) return;
+          const last = name.replace(/\/$/, "").split("/").pop();
+          if (!name.endsWith("/") && !FILENAME.test(name) && DIRNAME.test(last)) {
+            found.push({ file: rel, line: b.line, message: `directory "${name}" without a trailing slash — a reader cannot tell it from an extensionless file` });
+          }
+        });
+      }
+      i = j;
+    }
+
+    lines.forEach((line, index) => {
+      const m = OWN_ROOT.exec(line);
+      if (m) found.push({ file: rel, line: index + 1, message: `example package "${m[1]}" — the guide's placeholder root is com.company.project` });
+    });
+  }
+  return found;
+}
+
 const stray = strayBoxArt(root);
+const trees = treeFindings(root);
 
 for (const { file, line, message } of broken) console.error(`${file}:${line}\n   ${message}\n`);
 for (const { file, line, where } of stray) {
   const place = where === "prose" ? "prose" : "a " + where + " fence";
   console.error(`${file}:${line}\n   box-drawing characters in ${place} — a tree belongs in a text fence, a structural diagram in mermaid\n`);
 }
-console.log(`mermaid: ${checked} diagrams checked, ${broken.length} broken · box art: ${stray.length} stray`);
-process.exit(broken.length || stray.length ? 1 : 0);
+for (const { file, line, message } of trees) console.error(`${file}:${line}\n   ${message}\n`);
+console.log(`mermaid: ${checked} diagrams checked, ${broken.length} broken · box art: ${stray.length} stray · trees: ${trees.length} findings`);
+process.exit(broken.length || stray.length || trees.length ? 1 : 0);

@@ -100,11 +100,23 @@ Structural diagrams are **mermaid**; package trees and tabular listings stay pla
 because a directory listing is already the densest form it has.
 
 ```bash
-make check        # parse every mermaid diagram (npm ci + the script)
-make hooks        # install the pre-commit hook that runs it
+make check        # the document checks (npm ci + the script)
+make hooks        # install the pre-commit hook that runs them
 docker compose run --rm test    # the same without a local node
-docker build .    # CI-style gate: the image only builds when every diagram parses
+docker build .    # CI-style gate: the image only builds when the checks pass
 ```
+
+`scripts/check-docs.mjs` enforces four things, each of them invisible in review because the page
+still renders:
+
+1. every `mermaid` block parses
+2. box-drawing characters appear only inside a `text` fence
+3. in a filesystem tree, a directory ends with `/` — otherwise a reader cannot tell a package from
+   an extensionless file. A list merely *drawn* with tree characters is left alone
+4. the project's own example root is `com.company.project`. A foreign package in an example — the
+   thing an ArchUnit rule excludes — is the point and stays
+
+Trees use `#` for comments, never `←` or `//`.
 
 Every fence declares what it holds: `text` for a tree, a table or a listing, a language for code,
 `mermaid` for a diagram. The check enforces the consequence — **box-drawing characters are only

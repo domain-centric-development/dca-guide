@@ -18,8 +18,8 @@ if [ ! -d node_modules ]; then
   npm ci --silent --no-audit --no-fund
 fi
 
-echo "pre-commit: mermaid → node scripts/check-mermaid.mjs"
-if ! node scripts/check-mermaid.mjs; then
+echo "pre-commit: docs → node scripts/check-docs.mjs"
+if ! node scripts/check-docs.mjs; then
   echo "pre-commit: commit refused. Fix the diagram, or commit with --no-verify and say why."
   exit 1
 fi

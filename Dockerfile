@@ -6,4 +6,4 @@ COPY package.json package-lock.json ./
 RUN npm ci --silent --no-audit --no-fund
 
 COPY . .
-RUN node scripts/check-mermaid.mjs
+RUN node scripts/check-docs.mjs

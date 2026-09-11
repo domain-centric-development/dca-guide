@@ -50,10 +50,10 @@ Spring Modulith enables building modular monoliths with clear boundaries between
 **Definition:** In Spring Modulith, **one top-level package = one module**
 
 ```text
-com.company.ecommerce
-├── order/          ← Module (= Bounded Context)
-├── customer/       ← Module (= Bounded Context)
-└── inventory/      ← Module (= Bounded Context)
+com.company.project
+├── order/          # Module (= Bounded Context)
+├── customer/       # Module (= Bounded Context)
+└── inventory/      # Module (= Bounded Context)
 ```
 
 **Alignment:**
@@ -66,7 +66,7 @@ com.company.ecommerce
 **Application Module** (default, recommended):
 ```java
 @org.springframework.modulith.ApplicationModule
-package com.company.ecommerce.order;
+package com.company.project.order;
 ```
 - Main business module
 - Implements a bounded context
@@ -77,7 +77,7 @@ package com.company.ecommerce.order;
 @org.springframework.modulith.ApplicationModule(
     type = Type.OPEN
 )
-package com.company.ecommerce.shared;
+package com.company.project.shared;
 ```
 - All packages are public
 - Use only for shared kernel
@@ -91,7 +91,7 @@ Modules expose clear API surfaces through specific packages:
 ```java
 // order/api/package-info.java
 @org.springframework.modulith.NamedInterface("api")
-package com.company.ecommerce.order.api;
+package com.company.project.order.api;
 ```
 - Public API of module
 - Synchronous integration point
@@ -101,7 +101,7 @@ package com.company.ecommerce.order.api;
 ```java
 // order/events/package-info.java
 @org.springframework.modulith.NamedInterface("events")
-package com.company.ecommerce.order.events;
+package com.company.project.order.events;
 ```
 - Events published by module
 - Asynchronous integration point
@@ -344,16 +344,16 @@ When consuming integration events from other modules, use an **Anti-Corruption L
 ```text
 Consuming Module (Inventory):
 │
-├── adapter/incoming/event/          ← consuming is an incoming adapter
+├── adapter/incoming/event/          # consuming is an incoming adapter
 │   ├── OrderEventConsumer.java         Event listener
 │   └── acl/
-│       └── OrderEventToInventoryMapper.java   ← ACL translator, beside the listener
+│       └── OrderEventToInventoryMapper.java   # ACL translator, beside the listener
 │
 └── application/
     └── reservestock/
         ├── ReserveStockInputPort.java
         ├── ReserveStockUseCase.java
-        └── ReserveStockCommand.java     ← Internal command (domain language)
+        └── ReserveStockCommand.java     # Internal command (domain language)
 ```
 
 > **`events/` is not this package.** A module's `events/` segment holds the integration-event
@@ -370,7 +370,7 @@ Consuming Module (Inventory):
 // ========== PRODUCING MODULE (Order) ==========
 
 // Order module publishes integration event
-package com.company.ecommerce.order.events;
+package com.company.project.order.events;
 
 public record OrderCreatedEvent(
     String eventId,
@@ -394,7 +394,7 @@ public record OrderItemDto(
 // ========== CONSUMING MODULE (Inventory) ==========
 
 // 1. EVENT LISTENER (Adapter) - Receives external event
-package com.company.ecommerce.inventory.adapter.incoming.event;
+package com.company.project.inventory.adapter.incoming.event;
 
 @Component
 @RequiredArgsConstructor
@@ -418,7 +418,7 @@ public class OrderEventConsumer {
 }
 
 // 2. ANTI-CORRUPTION LAYER (ACL) - Translator
-package com.company.ecommerce.inventory.acl;
+package com.company.project.inventory.acl;
 
 @Component
 public class OrderEventToInventoryMapper {
@@ -460,7 +460,7 @@ public class OrderEventToInventoryMapper {
 }
 
 // 3. INTERNAL COMMAND (Application Layer) - Inventory's language
-package com.company.ecommerce.inventory.application.reservestock;
+package com.company.project.inventory.application.reservestock;
 
 public record ReserveStockCommand(
     OrderReference orderReference,      // Inventory's value object
@@ -500,7 +500,7 @@ public enum ReservationReason {
 }
 
 // 4. USE CASE (Application Layer) - Uses Inventory's domain
-package com.company.ecommerce.inventory.application.reservestock;
+package com.company.project.inventory.application.reservestock;
 
 @Service
 @RequiredArgsConstructor
@@ -570,14 +570,14 @@ The **Event Mapper** is the outbound equivalent of ACL - it translates internal 
 Producing Module (Order):
 │
 ├── domain/event/
-│   └── OrderCreated.java             ← Internal domain event
+│   └── OrderCreated.java             # Internal domain event
 │
-├── adapter/outgoing/messaging/       ← the channel this adapter speaks to
+├── adapter/outgoing/messaging/       # the channel this adapter speaks to
 │   ├── OrderEventMapper.java            translates domain event → contract
 │   └── OutboxRelay.java                 transport, when there is one
 │
 └── events/ (published)
-    └── OrderCreatedEvent.java        ← External integration event
+    └── OrderCreatedEvent.java        # External integration event
 ```
 
 > **The sub-package is named after the counterpart, like every other outgoing adapter** —
@@ -601,7 +601,7 @@ Producing Module (Order):
 
 ```java
 // Internal Domain Event (Order's domain language)
-package com.company.ecommerce.order.domain.event;
+package com.company.project.order.domain.event;
 
 public record OrderCreated(
     OrderId orderId,                   // Domain value object
@@ -612,7 +612,7 @@ public record OrderCreated(
 ) implements DomainEvent {}
 
 // Event Mapper (Adapter)
-package com.company.ecommerce.order.adapter.outgoing.messaging;
+package com.company.project.order.adapter.outgoing.messaging;
 
 @Component
 @RequiredArgsConstructor
@@ -655,7 +655,7 @@ public class OrderEventMapper {
 }
 
 // External Integration Event (Published DTO)
-package com.company.ecommerce.order.events;
+package com.company.project.order.events;
 
 public record OrderCreatedEvent(
     String eventId,
@@ -698,48 +698,48 @@ public record OrderCreatedEvent(
 ### Recommended Structure: Module per Bounded Context
 
 ```text
-com.company.ecommerce
-├── order (module = bounded context)
-│   ├── api (published - public interface)
+com.company.project
+├── order/ (module = bounded context)
+│   ├── api/ (published - public interface)
 │   │   ├── OrderApi.java
 │   │   ├── CreateOrderRequest.java
 │   │   └── OrderResponse.java
-│   ├── events (published - integration events)
+│   ├── events/ (published - integration events)
 │   │   ├── OrderCreatedEvent.java
 │   │   └── OrderCancelledEvent.java
-│   └── internal (hidden)
-│       ├── domain
-│       │   ├── model
+│   └── internal/ (hidden)
+│       ├── domain/
+│       │   ├── model/
 │       │   │   ├── Order.java (Aggregate Root)
 │       │   │   ├── OrderLine.java (Entity)
 │       │   │   └── Money.java (Value Object)
-│       │   ├── service
+│       │   ├── service/
 │       │   │   └── PricingService.java
-│       │   └── event
+│       │   └── event/
 │       │       └── OrderCreated.java (Domain Event)
-│       ├── application
-│       │   ├── createorder
+│       ├── application/
+│       │   ├── createorder/
 │       │   │   ├── CreateOrderInputPort.java
 │       │   │   ├── CreateOrderUseCase.java
 │       │   │   ├── CreateOrderCommand.java
 │       │   │   └── CreateOrderResult.java
-│       │   ├── findorder
-│       │   ├── cancelorder
-│       │   └── shared
+│       │   ├── findorder/
+│       │   ├── cancelorder/
+│       │   └── shared/
 │       │       ├── OrderRepository.java
 │       │       └── DomainEventPublisher.java
-│       ├── adapter
-│       │   ├── incoming
-│       │   │   ├── web
+│       ├── adapter/
+│       │   ├── incoming/
+│       │   │   ├── web/
 │       │   │   │   └── OrderController.java
-│       │   │   └── event
+│       │   │   └── event/
 │       │   │       └── OrderEventConsumer.java
-│       │   └── outgoing
-│       │       ├── persistence
+│       │   └── outgoing/
+│       │       ├── persistence/
 │       │       │   └── OrderRepositoryAdapter.java
-│       │       └── payment
+│       │       └── payment/
 │       │           └── PaymentGatewayAdapter.java
-│       └── config
+│       └── config/
 │           └── OrderModuleConfiguration.java
 ```
 
@@ -754,21 +754,21 @@ com.company.ecommerce
     displayName = "Order Management",
     allowedDependencies = {"customer::api", "inventory::api", "shared"}
 )
-package com.company.ecommerce.order;
+package com.company.project.order;
 ```
 
 **API Package:**
 ```java
 // order/api/package-info.java
 @org.springframework.modulith.NamedInterface("api")
-package com.company.ecommerce.order.api;
+package com.company.project.order.api;
 ```
 
 **Events Package:**
 ```java
 // order/events/package-info.java
 @org.springframework.modulith.NamedInterface("events")
-package com.company.ecommerce.order.events;
+package com.company.project.order.events;
 ```
 
 ## Progressive Complexity for Spring Modulith Modules
@@ -791,7 +791,7 @@ For general progressive complexity guidelines, see [Domain-Centric Architecture]
 
 **Structure:**
 ```text
-com.company.ecommerce.order/ (module)
+com.company.project.order/ (module)
 ├── package-info.java (@ApplicationModule)
 ├── api/ (published)
 │   ├── package-info.java (@NamedInterface("api"))
@@ -832,7 +832,7 @@ com.company.ecommerce.order/ (module)
 
 **Structure:**
 ```text
-com.company.ecommerce.order/
+com.company.project.order/
 ├── api/
 ├── events/
 └── internal/
@@ -896,21 +896,21 @@ The Shared Kernel is a **small, carefully controlled** `shared/` module containi
     displayName = "Shared Kernel",
     type = org.springframework.modulith.ApplicationModule.Type.OPEN
 )
-package com.company.ecommerce.shared;
+package com.company.project.shared;
 ```
 
 ### Structure
 
 ```text
-com.company.ecommerce.shared/
+com.company.project.shared/
 ├── package-info.java (@ApplicationModule with Type.OPEN)
-├── domain/model/        ← Universal value objects
+├── domain/model/        # Universal value objects
 │   ├── Money.java
 │   ├── Address.java
 │   └── EmailAddress.java
-├── application/shared/  ← Application ports every context reads the same way
+├── application/shared/  # Application ports every context reads the same way
 │   └── IdentityProvider.java
-└── exception/           ← Base exceptions
+└── exception/           # Base exceptions
     ├── DomainException.java
     └── NotFoundException.java
 ```
@@ -932,7 +932,7 @@ com.company.ecommerce.shared/
         "inventory::api"
     }
 )
-package com.company.ecommerce.order;
+package com.company.project.order;
 ```
 
 **All modules can depend on `shared`:**
@@ -1093,7 +1093,7 @@ class CustomerService {
 @ApplicationModule(
     allowedDependencies = {"order::api"}  // Can only use order.api
 )
-package com.company.ecommerce.customer;
+package com.company.project.customer;
 ```
 
 ## Build Configuration

@@ -6,7 +6,7 @@ services:
     volumes:
       - .:/guide
       - guide-node-modules:/guide/node_modules
-    command: sh -c "npm ci --silent --no-audit --no-fund && node scripts/check-mermaid.mjs"
+    command: sh -c "npm ci --silent --no-audit --no-fund && node scripts/check-docs.mjs"
 
 volumes:
   guide-node-modules:
