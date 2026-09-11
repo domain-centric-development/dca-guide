@@ -179,6 +179,15 @@ others.** Neither outcome is evidence. So a mapped test is run with the command 
 source set the test actually lives in, and a test in a source set no command covers is a
 configuration error rather than a verdict.
 
+**Neither an exit code nor a message says that a test ran.** An exit code says how a process
+ended; a runner that never found the test can exit exactly like one whose test failed, and a
+crashed test host does too. Output is no better: a runner that prints "no tests found for
+<selector>" says something different for every selector while executing nothing. The only artefact
+that states what was *executed* is the runner's report — and every ecosystem can write one in a
+format two parsers cover, so requiring it costs a project a flag, not a rewrite. Where a stack
+genuinely has none, weaken the check explicitly and print that weakening next to every verdict it
+produces; a silent weakening is the same as none.
+
 **A test that was never red proves nothing.** The test stage records which selectors it saw fail;
 the build gate accepts a green test only if it is in that record. This is what closes the gap
 between "the criterion is met" and "something green exists".
