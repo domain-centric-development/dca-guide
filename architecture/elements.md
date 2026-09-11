@@ -31,7 +31,7 @@ The application layer organizes business operations using a structured **Use Cas
 - **Output Port** - Interface for infrastructure needs (repositories, gateways, publishers)
 
 **Organization:**
-```
+```text
 application/
 ├── {usecasename}/          # e.g., createorder, findorder, cancelorder (lowercase)
 │   ├── *InputPort.java     # Interface: public interface CreateOrderInputPort extends UseCase<CreateOrderCommand, CreateOrderResult>

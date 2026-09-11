@@ -32,14 +32,14 @@ dependencies {
 </dependency>
 ```
 
-```
+```text
 dotnet add package DomainCentric.BuildingBlocks            # .NET twin: I-prefixed interfaces, attributes, async ports
 dotnet add package DomainCentric.ArchRules.Xunit           # same rule ids, xUnit base class
 ```
 
 What the library defines, by package (Java) and namespace (.NET):
 
-```
+```text
 dev.domaincentric.dca.buildingblocks            DomainCentric.BuildingBlocks
 ├── ddd.tactical                                ├── Ddd.Tactical
 │   Id, Entity, Value, AggregateRoot,           │   IId, IEntity, IValue, IAggregateRoot,
@@ -67,7 +67,7 @@ The rest of this guide names the Java types; the .NET names follow the host lang
 (`I` prefix, attributes, `Async` suffix) — see [Language Mappings](../topics/language-mappings.md).
 
 **Structure of the application's shared kernel:**
-```
+```text
 sharedkernel/                      # @SharedKernel on package-info.java
 ├── application/
 │   └── shared/                    # Application-specific ports shared by several contexts

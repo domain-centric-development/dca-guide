@@ -47,7 +47,7 @@ implementation("dev.domaincentric:dca-building-blocks:0.1.2")
 testImplementation("dev.domaincentric:dca-archunit:0.3.0")
 ```
 
-```
+```text
 # .NET
 dotnet add package DomainCentric.BuildingBlocks
 dotnet add package DomainCentric.ArchRules.Xunit      # in the architecture test project

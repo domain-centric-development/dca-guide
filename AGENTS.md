@@ -55,7 +55,7 @@ reappears there — where it is even less resolvable.
 
 Three folders, one landing page. A document's folder says what kind of document it is.
 
-```
+```text
 README.md              landing page: what DCA is, and the index over every document below
 architecture/          the architecture itself — the former README, split by topic
 topics/                the deeper guides, each self-contained
@@ -106,6 +106,11 @@ docker compose run --rm test    # the same without a local node
 docker build .    # CI-style gate: the image only builds when every diagram parses
 ```
 
+Every fence declares what it holds: `text` for a tree, a table or a listing, a language for code,
+`mermaid` for a diagram. The check enforces the consequence — **box-drawing characters are only
+allowed inside a `text` fence**, so an undeclared fence and a structural diagram nobody converted
+both show up as findings instead of sitting there.
+
 A broken diagram is invisible until someone opens the page — GitHub renders a red box and nothing
 else reports it. Two traps that look harmless in a diff: inside a `sequenceDiagram` a **semicolon
 ends the statement**, so a `Note` containing one is a syntax error; and a label with parentheses or
@@ -119,14 +124,14 @@ to suggest. Say in the commit message which relations the conversion made explic
 ## Key Architectural Patterns
 
 ### Layer Structure
-```
+```text
 Infrastructure → Adapters → Application → Domain
                                           (zero dependencies)
 ```
 
 ### Use Case Organization (Application Layer)
 Each use case is self-contained in its own folder:
-```
+```text
 application/
 ├── {usecasename}/                  # or {feature}/{usecasename}/ once the context groups its use cases
 │   ├── *InputPort.java      # Interface: extends UseCase<INPUT, OUTPUT>
@@ -138,7 +143,7 @@ application/
 ```
 
 ### Bounded Context Pattern
-```
+```text
 com.company.project/
 ├── {boundedcontext}/
 │   ├── domain/               # Pure business logic (zero dependencies)

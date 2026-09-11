@@ -134,7 +134,7 @@ Page Objects encapsulate page-specific selectors and interactions, providing:
 
 ### Structure
 
-```
+```text
 src/test-e2e/java/com/company/project/e2e/pages/
 ├── BasePage.java              # Common methods for all pages
 ├── ProductCatalogPage.java    # Product listing interactions
@@ -261,7 +261,7 @@ public class ProductCatalogPage extends BasePage {
 
 ### Directory Structure
 
-```
+```text
 src/test-e2e/java/com/company/project/e2e/
 ├── BaseE2ETest.java           # Common test setup
 ├── CheckoutGuestE2ETest.java  # Guest checkout flow tests

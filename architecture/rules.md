@@ -368,7 +368,7 @@ Rules:
 - **Adapter Exceptions** - Translated to appropriate responses (HTTP status codes, error DTOs)
 
 ### Exception Flow Pattern
-```
+```text
 Domain Exception (invariant violation)
     ↓ propagates to
 Application Layer (can catch, wrap, or let propagate)

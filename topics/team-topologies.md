@@ -36,7 +36,7 @@ This document shows how to:
 - Continuous delivery
 
 **Example:**
-```
+```text
 Order Team (Stream-Aligned)
 ├── Owns: Order Bounded Context
 ├── Full stack: Backend + Frontend + Database
@@ -63,7 +63,7 @@ Order Team (Stream-Aligned)
 - Developer tools
 
 **Example:**
-```
+```text
 Platform Team
 ├── Provides: Postgres Database as a Service
 ├── API: Self-service provisioning
@@ -92,7 +92,7 @@ Platform Team
 - Testing strategies
 
 **Example:**
-```
+```text
 Enabling Team
 ├── Expertise: DDD, Event Sourcing, CQRS
 ├── Engagement: 2-week pairing with Inventory Team
@@ -119,7 +119,7 @@ Enabling Team
 - Geospatial calculations
 
 **Example:**
-```
+```text
 Pricing Engine Team (Complicated-Subsystem)
 ├── Owns: Complex ML-based pricing algorithm
 ├── Provides: Pricing API
@@ -143,7 +143,7 @@ Pricing Engine Team (Complicated-Subsystem)
 - Use when integration points are unclear
 
 **Example:**
-```
+```text
 Order Team ↔ Inventory Team (Collaboration)
 ├── Goal: Define integration for stock reservation
 ├── Duration: 4 weeks
@@ -165,7 +165,7 @@ Order Team ↔ Inventory Team (Collaboration)
 - Self-service where possible
 
 **Example:**
-```
+```text
 Order Team → Platform Team (X-as-a-Service)
 ├── Order Team consumes: Database provisioning API
 ├── SLA: Database available in <10 minutes
@@ -190,7 +190,7 @@ Order Team → Platform Team (X-as-a-Service)
 - Goal: increase capability, not create dependency
 
 **Example:**
-```
+```text
 Enabling Team → Customer Team (Facilitating)
 ├── Request: Help implementing CQRS pattern
 ├── Engagement: 2 weeks embedded pairing
@@ -214,7 +214,7 @@ Enabling Team → Customer Team (Facilitating)
 - Responsibility for published interfaces/APIs
 
 **Example:**
-```
+```text
 Order Team owns Order Bounded Context
 ├── domain/ (Order, OrderLine, Money)
 ├── application/ (CreateOrderUseCase, CancelOrderUseCase)
@@ -256,7 +256,7 @@ Order Team owns Order Bounded Context
 - Anti-Corruption Layer for consuming external APIs
 
 **Example:**
-```
+```text
 Order Team's APIs:
 ├── REST API: POST /orders, GET /orders/{id}
 ├── Integration Events: OrderCreatedEvent, OrderCancelledEvent
@@ -290,7 +290,7 @@ Order Team's APIs:
 4. Use appropriate interaction modes
 
 **Example:**
-```
+```text
 Desired Architecture:
 ├── Order BC (independent)
 ├── Customer BC (independent)
@@ -353,7 +353,7 @@ Result: Independent deployment, loose coupling
 - Transfers knowledge to reduce future cognitive load
 
 **Example - Reducing Load:**
-```
+```text
 Before:
 Order Team manages:
 ├── Order domain (intrinsic load)
@@ -377,7 +377,7 @@ Platform Team provides:
 
 ### E-Commerce Organization
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │  Platform Team                              │
 │  - Database as a Service                    │
@@ -450,7 +450,7 @@ Platform Team provides:
 - Ensures deployment self-service
 
 **Example:**
-```
+```text
 Order Team Deployment:
 ├── CI/CD Pipeline: TeamCity (provided by Platform)
 ├── Deployment: Kubernetes (provided by Platform)
@@ -475,7 +475,7 @@ Order Team Deployment:
 - Self-service dashboards
 
 **Example:**
-```
+```text
 Order Team Monitoring:
 ├── Infrastructure: Prometheus + Grafana (Platform Team)
 ├── Dashboards: Custom Order metrics (Order Team)
@@ -531,7 +531,7 @@ Teams and architecture should evolve together. For detailed package structure ev
 ### With Modular Monolith (Spring Modulith)
 
 **Team Structure:**
-```
+```text
 Single Deployment, Multiple Teams
 ┌─────────────────────────────────────────┐
 │  E-Commerce Application                 │
@@ -564,7 +564,7 @@ Single Deployment, Multiple Teams
 ### With Microservices
 
 **Team Structure:**
-```
+```text
 ┌────────┐     ┌──────────────────────┐     ┌────────┐
 │ Order  │     │ Spring Boot App      │     │Inventory│
 │Service │     │ ┌────────┐          │     │Service │

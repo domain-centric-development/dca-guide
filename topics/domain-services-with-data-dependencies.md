@@ -118,7 +118,7 @@ public interface DomainGateway {}
 
 **Where it sits among the building blocks:**
 
-```
+```text
 dev.domaincentric.dca.buildingblocks.ddd.tactical     (the library; .NET: DomainCentric.BuildingBlocks.Ddd.Tactical → IDomainGateway)
 ├── DomainService
 ├── DomainGateway               ← this one
@@ -271,7 +271,7 @@ public class CalculateBundleDiscountUseCase implements CalculateBundleDiscountIn
 
 ### Data Flow
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ Adapter Layer                                                               │
 │                                                                             │
@@ -448,7 +448,7 @@ The call in the Use Case stays identical — Java's lambda compatibility ensures
 
 ### Data Flow
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ Application Layer                                                           │
 │                                                                             │

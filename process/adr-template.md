@@ -31,7 +31,7 @@ State the decision clearly and concisely:
 > We will organize each use case in its own dedicated folder within the application layer, grouping all related files (InputPort interface, UseCase implementation, Command/Query, and Result) together.
 >
 > **Structure:**
-> ```
+> ```text
 > application/
 > ├── createorder/
 > │   ├── CreateOrderInputPort.java

@@ -26,7 +26,7 @@ detail that may change without the process changing.
 The backlog is markdown with front matter, one file per item, readable and reviewable without any
 tooling — no database, and no JSON as the source of truth.
 
-```
+```text
 backlog/
   <epic>/
     epic.md          the epic
@@ -86,7 +86,7 @@ the change in the system's behaviour that the epic existed for.
 Because DCA applications already publish domain events for the facts that matter, the metric is
 usually a name that exists:
 
-```
+```text
 metric: OrderPlaced          # the epic's point was that orders can be placed at all
 metric: CartRecovered        # the epic's point was that abandoned carts come back
 metric: StockChanged         # the epic's point was that an operator reacts before stock runs out

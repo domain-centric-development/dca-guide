@@ -26,7 +26,7 @@ A **Self-Contained System** is an autonomous, independently deployable unit that
 
 ### SCS Characteristics
 
-```
+```text
 ┌──────────────────────────────────────┐
 │  Self-Contained System (SCS)         │
 │                                      │
@@ -68,12 +68,12 @@ A **Self-Contained System** is an autonomous, independently deployable unit that
 | **Goal** | Model clarity | Deployment autonomy |
 
 **Typical Mapping:**
-```
+```text
 Bounded Context = Self-Contained System (common)
 ```
 
 **Alternative Mapping:**
-```
+```text
 1 Bounded Context = Multiple Services (advanced)
 ```
 
@@ -119,7 +119,7 @@ For core event patterns, see [Domain-Centric Architecture - Event Rules](../arch
 - **Example:** `OrderLineAddedInternalEvent` between Order Management Service and Order Pricing Service (both in Order BC)
 
 **Key Distinction:**
-```
+```text
 Order BC (Single Bounded Context)
 ├── Order Management Service
 │   └── publishes: OrderLineAddedInternalEvent
@@ -157,7 +157,7 @@ flowchart TD
 
 **Scenario:** Order Bounded Context split into 3 services
 
-```
+```text
 order-bounded-context/ (Git Repository)
 │
 ├── order-management-service/
@@ -246,7 +246,7 @@ order-bounded-context/ (Git Repository)
 
 ### Internal Event Communication Pattern
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                 ORDER BOUNDED CONTEXT                           │
 │                                                                 │
@@ -304,7 +304,7 @@ languages, and the contract is written in the producer's.
 ### Pattern 1: Modular Monolith (Single Deployment Unit)
 
 **Structure:**
-```
+```text
 Single Deployment Unit
 ┌──────────────────────────────────────┐
 │  Spring Boot Application             │
@@ -338,7 +338,7 @@ Single Deployment Unit
 ### Pattern 2: Self-Contained Systems (Multiple SCS)
 
 **Structure:**
-```
+```text
 ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
 │  Order SCS   │     │ Customer SCS │     │Inventory SCS │
 │              │     │              │     │              │
@@ -374,7 +374,7 @@ Single Deployment Unit
 ### Pattern 3: Multi-Service Bounded Context (Advanced)
 
 **Structure:**
-```
+```text
 Order Bounded Context
 ┌─────────────────────────────────────────────────────────┐
 │                                                         │

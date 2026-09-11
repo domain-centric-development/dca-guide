@@ -24,7 +24,7 @@ entry is stated in full elsewhere in this guide; nothing here is a rule of its o
 
 ## Dependency matrix
 
-```
+```text
 Layer          | May depend on
 ---------------+-----------------------------------------------------------
 Domain         | nothing, or shared-kernel domain concepts
@@ -42,7 +42,7 @@ its own module's, but never another module's (`DCA-HEX-005`).
 
 ## Port placement
 
-```
+```text
 Port type | Interface declared in | Implemented in    | Called by
 ----------+-----------------------+-------------------+------------------
 Input     | application           | application       | adapter/incoming
@@ -54,7 +54,7 @@ The asymmetry is the whole point: an incoming adapter *uses* an input port, an o
 
 ## Framework annotations
 
-```
+```text
 Layer          | Framework annotations | Example
 ---------------+-----------------------+------------------------------------
 Domain         | never                 | pure Java / C# only

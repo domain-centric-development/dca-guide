@@ -20,7 +20,7 @@ Spring Modulith is a framework for building **modular monolithic applications** 
 - **Event Publication Registry** - Guaranteed event delivery
 
 **Mapping:**
-```
+```text
 Spring Modulith Module = Bounded Context (from DDD)
                        = Domain-Centric Architecture Package Structure
 ```
@@ -49,7 +49,7 @@ Spring Modulith enables building modular monoliths with clear boundaries between
 
 **Definition:** In Spring Modulith, **one top-level package = one module**
 
-```
+```text
 com.company.ecommerce
 ├── order/          ← Module (= Bounded Context)
 ├── customer/       ← Module (= Bounded Context)
@@ -341,7 +341,7 @@ When consuming integration events from other modules, use an **Anti-Corruption L
 - **Decoupling** - Module's domain remains independent
 
 **Pattern Structure:**
-```
+```text
 Consuming Module (Inventory):
 │
 ├── adapter/incoming/event/          ← consuming is an incoming adapter
@@ -566,7 +566,7 @@ public class ReserveStockUseCase implements ReserveStockInputPort {
 The **Event Mapper** is the outbound equivalent of ACL - it translates internal domain events into external integration events.
 
 **Structure:**
-```
+```text
 Producing Module (Order):
 │
 ├── domain/event/
@@ -697,7 +697,7 @@ public record OrderCreatedEvent(
 
 ### Recommended Structure: Module per Bounded Context
 
-```
+```text
 com.company.ecommerce
 ├── order (module = bounded context)
 │   ├── api (published - public interface)
@@ -790,7 +790,7 @@ For general progressive complexity guidelines, see [Domain-Centric Architecture]
 **Timeline:** Weeks 1-2
 
 **Structure:**
-```
+```text
 com.company.ecommerce.order/ (module)
 ├── package-info.java (@ApplicationModule)
 ├── api/ (published)
@@ -831,7 +831,7 @@ com.company.ecommerce.order/ (module)
 - **>2 adapter types** suggests `internal/adapter/incoming/` and `/outgoing/` packages
 
 **Structure:**
-```
+```text
 com.company.ecommerce.order/
 ├── api/
 ├── events/
@@ -901,7 +901,7 @@ package com.company.ecommerce.shared;
 
 ### Structure
 
-```
+```text
 com.company.ecommerce.shared/
 ├── package-info.java (@ApplicationModule with Type.OPEN)
 ├── domain/model/        ← Universal value objects

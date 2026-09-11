@@ -2,7 +2,7 @@
 
 ## High-Level Structure Overview
 
-```
+```text
 com.company.project/
 │
 ├── {boundedcontext}/
@@ -41,7 +41,7 @@ the application: they come from the dca-building-blocks dependency (see Shared K
 The same shape in C#: **one project per bounded context**, folders for the layers, PascalCase
 segments. A context is declared by a marker class in its root namespace (C# has no `package-info`).
 
-```
+```text
 src/
 ├── Company.Project.{Context}/        one assembly per bounded context (namespace Company.Project.{Context})
 │   ├── {Context}Context.cs           [BoundedContext], [Upstream], [Partnership] — the context declaration
@@ -193,7 +193,7 @@ team ownership have diverged, split the context — grouping use cases does not 
 
 ## Detailed Structure with All Subdivisions
 
-```
+```text
 com.company.project
 │
 ├── order (bounded context)
@@ -384,7 +384,7 @@ This example shows how a bounded context's structure naturally evolves as comple
 
 **Use Case Organization - Self-Contained Pattern:**
 
-```
+```text
 APPLICATION LAYER
 ├── createorder/                   (USE CASE - All related files together)
 │   ├── CreateOrderInputPort.java      ← Input Port Interface
@@ -446,7 +446,7 @@ APPLICATION LAYER
 
 **When the flat list outgrows itself — features:**
 
-```
+```text
 APPLICATION LAYER (grouped form)
 ├── ordering/                      (FEATURE - a term of the ubiquitous language)
 │   ├── createorder/                   ← use case, unchanged inside

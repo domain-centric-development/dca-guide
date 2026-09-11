@@ -215,7 +215,7 @@ The same catalog exists for C# — `DomainCentric.ArchRules` on ArchUnitNET, wit
 class `DomainCentric.ArchRules.Xunit`. Rule ids are identical to the Java library's, so a team, a
 review checklist or a knowledge base can speak of `DCA-TAC-001` in either language.
 
-```
+```text
 dotnet add package DomainCentric.BuildingBlocks            # production projects
 dotnet add package DomainCentric.ArchRules.Xunit           # the architecture test project
 ```

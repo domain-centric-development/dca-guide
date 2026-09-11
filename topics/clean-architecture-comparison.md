@@ -23,7 +23,7 @@
 
 ### Clean Architecture Layers
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │  Frameworks & Drivers (outermost)           │
 │  - Web, UI, Database, External Interfaces   │
@@ -241,7 +241,7 @@ public class CreateOrderUseCase {
 ### 5. Package Structure
 
 **Clean Architecture (typical):**
-```
+```text
 com.company.project
 ├── entities/
 │   ├── Order.java
@@ -258,7 +258,7 @@ com.company.project
 ```
 
 **Domain-Centric Architecture:**
-```
+```text
 com.company.project
 ├── order/ (bounded context)
 │   ├── domain/
@@ -376,7 +376,7 @@ public interface OrderRepository {
 
 ### Clean Architecture Circle Diagram
 
-```
+```text
 ┌─────────────────────────────────────────────────────────┐
 │                                                         │
 │   ┌───────────────────────────────────────────┐        │
@@ -412,7 +412,7 @@ Dependencies point INWARD →
 
 ### Domain-Centric Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────┐
 │                                                         │
 │   ┌───────────────────────────────────────────┐        │
@@ -561,7 +561,7 @@ If Domain-Centric Architecture is too complex for your needs:
 You can combine approaches:
 
 **Hybrid Approach:**
-```
+```text
 ✅ Use Clean Architecture layers (from Clean Architecture)
 ✅ Use DDD patterns in Domain layer (from Domain-Centric)
 ✅ Use Presenters OR DTOs (choose what fits)
@@ -570,7 +570,7 @@ You can combine approaches:
 ```
 
 **Example:**
-```
+```text
 com.company.project
 ├── order/ (Bounded Context - from DCA)
 │   ├── entities/ (Clean Architecture terminology)

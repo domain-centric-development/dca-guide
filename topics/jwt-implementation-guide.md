@@ -158,7 +158,7 @@ Services fetch and cache the JWKS on startup; refresh on cache miss for unknown 
 
 Verifying services should resolve the public key for a token's `kid` against a local in-memory cache rather than fetching the JWKS per request:
 
-```
+```text
 getPublicKey(kid):
     if cache.has(kid): return cache[kid]          // fast path, no lock
     synchronized:
@@ -594,7 +594,7 @@ app:
 
 Consistent with the existing output port pattern:
 
-```
+```text
 account/application/shared/
 └── LoginAttemptRepository.java    -- extends OutputPort; called before + after credential check
 ```
@@ -638,7 +638,7 @@ Access tokens expire naturally within 15 minutes — this is the accepted tradeo
 
 ## 12. Refresh Token Rotation Flow
 
-```
+```text
 1. POST /auth/refresh  →  Browser sends Cookie: shop-refresh=<raw>
 2. Compute SHA-256(raw) → token_hash; query refresh_tokens table
 3. Not found / revoked / expires_at < NOW() → 401; clear all cookies; force re-login
@@ -744,7 +744,7 @@ So "rotating on logout is safer but worse for tracking" is true only while one i
 jobs. Separated, rotation costs exactly one thing: linking this browser's *future* anonymous sessions
 to its past ones — which is what someone who deliberately logs out is asking you not to do.
 
-```
+```text
 shop-session   session         short    expiry is harmless
 shop-refresh   renewal         long     path-scoped, rotating
 shop-identity  cart identity   long     rotates only on explicit logout
@@ -769,7 +769,7 @@ The visitor cookie on the client device cannot be actively deleted, but the UUID
 
 New ports and use cases consistent with existing patterns:
 
-```
+```text
 account/application/shared/
 ├── LoginAttemptRepository.java      -- NEW output port; extends OutputPort
 └── RefreshTokenRepository.java      -- NEW output port; extends OutputPort
@@ -848,7 +848,7 @@ Controllers receive the adapter model (absent → guest) and map it into the dom
 
 ## 15. Must-Haves Checklist
 
-```
+```text
 [ ] Switch from HS256 to ES256 (asymmetric signing)
 [ ] Publish JWKS endpoint (GET /.well-known/jwks.json) for public key distribution
 [ ] Add kid claim to JWT header; support key rotation
@@ -877,7 +877,7 @@ Controllers receive the adapter model (absent → guest) and map it into the dom
 
 ## 16. Optional Enhancements
 
-```
+```text
 [ ] Multi-level authentication (soft login / full login) with loginTyp claim
 [ ] Multi-country / multi-tenant support with tenant claim and per-tenant validation
 [ ] Field-level AES encryption of sensitive claims (alternative to full JWE — see below)
@@ -899,7 +899,7 @@ Controllers receive the adapter model (absent → guest) and map it into the dom
 
 A lightweight revocation alternative for topologies that deliberately run **without refresh tokens** (longer-lived access token, e.g. 30 minutes, as the only credential): store one **"valid-after" timestamp per user**, updated on logout, password change, or suspension. On verification, reject any token issued before the watermark:
 
-```
+```text
 tokenValid = token.iat >= user.tokenValidAfter
 ```
 
@@ -913,7 +913,7 @@ One indexed timestamp per user buys forced revocation without a token blacklist 
 
 A practical middle ground between an unprotected payload (standard JWS) and full payload encryption (JWE): encrypt only the sensitive claim value before embedding it in the JWT.
 
-```
+```text
 1. AES-encrypt rawUserId  →  encryptedValue
 2. Embed encryptedValue as the claim (e.g. "uniqueUserId": "<AES_ENCRYPTED>")
 3. Sign the JWT normally (JWS)
@@ -931,7 +931,7 @@ The token is human-readable except for the encrypted field. This protects the se
 
 **Key versioning for rotation:** prefix the encrypted value with the key ID (as above) so the decryption side can select the correct key from a key map and fall back to older keys for in-flight tokens:
 
-```
+```text
 V2:<base64(AES_V2_encrypt(rawUserId))>
 ```
 
