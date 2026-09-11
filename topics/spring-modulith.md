@@ -344,11 +344,10 @@ When consuming integration events from other modules, use an **Anti-Corruption L
 ```
 Consuming Module (Inventory):
 │
-├── events/ (listening to external events)
-│   └── OrderEventConsumer.java        ← Event listener (adapter)
-│
-├── acl/ (anti-corruption layer)
-│   └── OrderEventToInventoryMapper.java  ← ACL Translator
+├── adapter/incoming/event/          ← consuming is an incoming adapter
+│   ├── OrderEventConsumer.java         Event listener
+│   └── acl/
+│       └── OrderEventToInventoryMapper.java   ← ACL translator, beside the listener
 │
 └── application/
     └── reservestock/
@@ -356,6 +355,14 @@ Consuming Module (Inventory):
         ├── ReserveStockUseCase.java
         └── ReserveStockCommand.java     ← Internal command (domain language)
 ```
+
+> **`events/` is not this package.** A module's `events/` segment holds the integration-event
+> *contracts it publishes* — `DCA-STR-007` checks exactly that. Consuming somebody else's contract
+> happens in an incoming adapter, because that is what it is: traffic arriving from outside.
+>
+> **The two sides are not symmetric.** The incoming side is thin — a client: it receives, translates
+> through the ACL, and calls an input port. Nothing is stored, nothing is retried by it. The weight
+> sits on the outgoing side, which is why that package earns a broader name than `event/`.
 
 **Complete ACL Example:**
 
@@ -565,12 +572,30 @@ Producing Module (Order):
 ├── domain/event/
 │   └── OrderCreated.java             ← Internal domain event
 │
-├── adapter/outgoing/messaging/
-│   └── OrderEventMapper.java         ← Event Mapper
+├── adapter/outgoing/messaging/       ← the channel this adapter speaks to
+│   ├── OrderEventMapper.java            translates domain event → contract
+│   └── OutboxRelay.java                 transport, when there is one
 │
 └── events/ (published)
     └── OrderCreatedEvent.java        ← External integration event
 ```
+
+> **The sub-package is named after the counterpart, like every other outgoing adapter** —
+> `persistence/`, `payment/`, `product/`, `messaging/`. No rule constrains this name: the rules fix
+> the *contract's* segment (`events/`, configurable) and the adapter layer, not what you call the
+> channel inside it.
+>
+> **This is the side that carries the machinery.** Translation is the smallest part of it: the relay
+> that drains the outbox, the retry with its backoff, the terminal failures kept for inspection, the
+> transport client — all of it lives here, against one published contract. `event/` is accurate only
+> while the package holds nothing but a translator and delivery is in-process; `messaging/` says what
+> the package becomes as soon as there is something to deliver over, and it survives the day the
+> broker is swapped. The reference implementation still uses `event/` because it has no broker — and
+> that is the exception, not the pattern.
+>
+> One part does *not* live here: writing the publication is not the adapter's job. The row is
+> captured inside the aggregate's transaction — Spring Modulith's publication registry, an outbox
+> table, an in-process stand-in — and the adapter is what drains it after the commit.
 
 **Example:**
 
@@ -879,21 +904,22 @@ package com.company.ecommerce.shared;
 ```
 com.company.ecommerce.shared/
 ├── package-info.java (@ApplicationModule with Type.OPEN)
-├── marker/              ← Marker interfaces for DDD patterns
-│   ├── AggregateRoot.java
-│   ├── Entity.java
-│   ├── ValueObject.java
-│   ├── DomainEvent.java
-│   ├── InputPort.java
-│   └── OutputPort.java
-├── types/               ← Common value objects
+├── domain/model/        ← Universal value objects
 │   ├── Money.java
 │   ├── Address.java
 │   └── EmailAddress.java
+├── application/shared/  ← Application ports every context reads the same way
+│   └── IdentityProvider.java
 └── exception/           ← Base exceptions
     ├── DomainException.java
     └── NotFoundException.java
 ```
+
+> **The architectural markers are not in here.** `AggregateRoot`, `Entity`, `Value`, `DomainEvent`,
+> `InputPort`, `OutputPort` come from the `dca-building-blocks` dependency — writing them into a
+> shared module duplicates a library the project already has on its class path, under names the rule
+> suite does not recognise. The shared module holds what is *yours* and universal: value objects,
+> shared application ports, base exceptions.
 
 ### Module Dependencies on Shared
 
@@ -1128,9 +1154,29 @@ dependencies {
 Events are optional: an aggregate that never registers a fact needs no publisher dependency. `DCA-USE-009`
 exempts a save only when the repository type argument and the aggregate's complete hierarchy can be inspected
 and no registration is found; unresolved arguments, incomplete scans and undecidable external helpers retain the check.
-Contracts belong in the configured `{context}/events/` segment. Translators belong in `adapter/outgoing/event/`;
+Contracts belong in the configured `{context}/events/` segment. Translators belong in an outgoing adapter named after its channel — `event/` when delivery is in-process, `messaging/` once transport or an outbox relay lives there;
 transport and storage are separate adapters. Schema versions belong in integration-event type metadata.
 `DCA-ADV-006/007` use a name heuristic for `schemaVersion`, `eventVersion`, `contractVersion`; a business `version` is allowed.
+
+**What that segment is, and what it is not.** The outgoing messaging segment is the *publishing* side
+of this context's own contracts: the translator, the relay that drains the publication store, the
+transport client. It is not a bucket for everything with "event" in the name.
+
+A subscriber that forwards a fact to an external system is not part of it, and is not one package at
+all. It is two:
+
+- **the subscription** — an incoming adapter, because consuming is arriving traffic. It receives the
+  contract, translates it, and calls an input port. It performs no external effect itself.
+- **the effect** — an outgoing adapter named after the partner it calls, behind an output port the
+  use case declares: `adapter/outgoing/email/`, `adapter/outgoing/erp/`.
+
+The event is the *trigger* of that effect, never its destination. Reading it the other way produces
+the class every codebase eventually regrets: a listener that deserialises a message and calls a
+third-party API in the same method, with no port between them, no use case that can be tested, and a
+retry policy that belongs to two systems at once.
+
+When one broker client serves both directions, it is infrastructure, not an adapter — global or the
+module's own, and an outgoing adapter may use both (`DCA-HEX-005`).
 
 An in-process registry may deliver domain events within a context **or integration events between contexts**.
 Process location does not determine event classification. Synchronous delivery is atomic only for local resources

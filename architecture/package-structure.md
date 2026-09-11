@@ -163,6 +163,18 @@ checkout/
 6. **Incoming adapters may mirror features *below* their protocol:** `adapter/incoming/web/{feature}`,
    `adapter/incoming/event/{feature}`. The protocol segment stays first, so the adapter vocabulary and its rules
    (`DCA-NAM-011`) keep working. Outgoing adapters stay organised by technology or partner.
+
+   **Both sides name the counterpart — they differ in what the counterpart is.** Incoming, it is the channel the
+   traffic arrives on: `web`, `api`, `event`, `mcp`. One segment per *client implementation*, so when a context
+   consumes from two sources that are genuinely different code — a broker topic and a cloud queue, two upstreams
+   with their own deserialisation, authentication and retry semantics — they are siblings at that level
+   (`adapter/incoming/kafka/`, `adapter/incoming/sqs/`), not two folders under one `event/`. Features stay below
+   them. Outgoing, the counterpart is who the adapter talks to: `persistence`, `payment`, `product`, `messaging`.
+
+   The asymmetry is worth keeping in view when reading these trees. An incoming adapter is a client: it receives,
+   translates through the anti-corruption layer, calls an input port, and stores nothing. The outgoing side is
+   where the machinery accumulates — the relay that drains the outbox, the retries, the transport — which is why a
+   single outgoing segment often holds far more than its incoming counterpart, against one published contract.
 7. **One form per context.** Within one context, use cases are either all flat or all grouped once a migration is
    complete; a lasting mixture leaves the reader guessing whether a direct child of `application/` is a feature,
    a use case or a leftover. A short-lived mixed state during one refactoring is fine — move one whole context
