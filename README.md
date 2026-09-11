@@ -23,15 +23,16 @@ Written by **Christoph Bloemer** — [@chbloemer](https://github.com/chbloemer).
 
 ### Four Layers
 
-```
-Infrastructure  ─→  Frameworks, Database, Message Broker
-     ↓ depends on
-Adapters       ─→  Controllers, Repositories, API Clients
-     ↓ depends on
-Application    ─→  Use Cases, Input Ports, Output Ports
-     ↓ depends on
-Domain         ─→  Entities, Value Objects, Aggregates, Events
-(ZERO DEPENDENCIES)
+```mermaid
+flowchart TD
+    I["<b>Infrastructure</b><br>Frameworks · Database · Message Broker"]
+    A["<b>Adapters</b><br>Controllers · Repositories · API Clients"]
+    P["<b>Application</b><br>Use Cases · Input Ports · Output Ports"]
+    D["<b>Domain</b><br>Entities · Value Objects · Aggregates · Events<br><i>zero dependencies</i>"]
+
+    I -- depends on --> A
+    A -- depends on --> P
+    P -- depends on --> D
 ```
 
 ### Key Benefits

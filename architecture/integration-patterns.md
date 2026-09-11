@@ -84,28 +84,23 @@ Rules the declarations enable (see [ArchUnit Governance](../topics/archunit-gove
 
 For synchronous cross-context queries, use the Open Host Service pattern.
 
+```mermaid
+flowchart LR
+    subgraph PROVIDER["PROVIDER CONTEXT — Product"]
+        API["adapter/incoming/api/<br><b>ProductCatalogApi</b><br>@RestController, or<br>@OpenHostService in a modulith"]
+    end
+    subgraph CONSUMER["CONSUMER CONTEXT — Cart"]
+        ADP["adapter/outgoing/product/<br><b>ProductDataAdapter</b>"]
+        PORT["application/shared/<br><b>ProductDataPort</b><br><i>output port</i>"]
+        UC["application/additemtocart/<br><b>AddItemToCartUseCase</b>"]
+        ADP -. implements .-> PORT
+        UC -- uses --> PORT
+    end
+
+    ADP -- calls --> API
 ```
-PROVIDER CONTEXT (Product)               CONSUMER CONTEXT (Cart)
-┌──────────────────────────────┐        ┌──────────────────────────────┐
-│ adapter/incoming/api/        │        │ adapter/outgoing/product/    │
-│   ProductCatalogApi          │◄───────│   ProductDataAdapter         │
-│   @RestController (REST)     │ calls  │   (implements ProductDataPort)│
-│   OR @OpenHostService        │        └───────────────┬──────────────┘
-│   (in-process modulith)      │                        │ implements
-└──────────────────────────────┘                        ▼
-                                        ┌──────────────────────────────┐
-                                        │ application/shared/          │
-                                        │   ProductDataPort            │
-                                        │   (output port)              │
-                                        └───────────────┬──────────────┘
-                                                        │ uses
-                                                        ▼
-                                        ┌──────────────────────────────┐
-                                        │ application/additemtocart/   │
-                                        │   AddItemToCartUseCase       │
-                                        │   (uses port, NOT OHS)       │
-                                        └──────────────────────────────┘
-```
+
+The use case knows the port, never the Open Host Service.
 
 ### Provider: REST API (Canonical)
 
