@@ -1,0 +1,13 @@
+{
+  "name": "dca-guide-checks",
+  "private": true,
+  "description": "Checks for the guide's own documents. Not published; the guide is prose.",
+  "type": "module",
+  "scripts": {
+    "check": "node scripts/check-mermaid.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "26.1.0",
+    "mermaid": "11.17.2"
+  }
+}

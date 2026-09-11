@@ -94,6 +94,28 @@ is `guide/spring-modulith.md` in the bundle. Two documents may therefore never s
 whatever folder they sit in. Moving a document between these folders is free; renaming one is not —
 it needs a `redirects.json` entry in `dca-knowledge-catalog`.
 
+## Diagrams
+
+Structural diagrams are **mermaid**; package trees and tabular listings stay plain code fences,
+because a directory listing is already the densest form it has.
+
+```bash
+make check        # parse every mermaid diagram (npm ci + the script)
+make hooks        # install the pre-commit hook that runs it
+docker compose run --rm test    # the same without a local node
+docker build .    # CI-style gate: the image only builds when every diagram parses
+```
+
+A broken diagram is invisible until someone opens the page — GitHub renders a red box and nothing
+else reports it. Two traps that look harmless in a diff: inside a `sequenceDiagram` a **semicolon
+ends the statement**, so a `Note` containing one is a syntax error; and a label with parentheses or
+a colon needs quoting. Only the parser knows, so run it.
+
+**Converting a diagram is a content change, not a formatting change.** Box art leaves a relation
+implicit — a line in a column — while mermaid forces a label on every edge. Writing that label is a
+statement about the architecture, and it must come from the rules, not from what the picture seemed
+to suggest. Say in the commit message which relations the conversion made explicit.
+
 ## Key Architectural Patterns
 
 ### Layer Structure

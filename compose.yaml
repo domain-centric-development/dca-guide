@@ -1,0 +1,12 @@
+# docker compose run --rm test   — parse every mermaid diagram against the mounted checkout
+services:
+  test:
+    image: node:22-alpine
+    working_dir: /guide
+    volumes:
+      - .:/guide
+      - guide-node-modules:/guide/node_modules
+    command: sh -c "npm ci --silent --no-audit --no-fund && node scripts/check-mermaid.mjs"
+
+volumes:
+  guide-node-modules:

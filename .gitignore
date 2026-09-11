@@ -4,3 +4,5 @@ slides/dist
 .serena
 bin/
 .claude/settings.local.json
+# checks (npm ci restores them from package-lock.json)
+node_modules/

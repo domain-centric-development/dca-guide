@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# A broken mermaid diagram is invisible until someone opens the page. Catch it here.
+# Skipped when no diagram is staged, and when node is not installed — say why either way.
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+
+if ! git diff --cached --name-only --diff-filter=ACM | grep -q '\.md$'; then
+  exit 0
+fi
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "pre-commit: mermaid check skipped — node is not installed."
+  exit 0
+fi
+
+if [ ! -d node_modules ]; then
+  echo "pre-commit: installing check dependencies (npm ci)…"
+  npm ci --silent --no-audit --no-fund
+fi
+
+echo "pre-commit: mermaid → node scripts/check-mermaid.mjs"
+if ! node scripts/check-mermaid.mjs; then
+  echo "pre-commit: commit refused. Fix the diagram, or commit with --no-verify and say why."
+  exit 1
+fi
