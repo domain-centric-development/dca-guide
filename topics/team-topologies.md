@@ -1,11 +1,11 @@
 # Team Topologies Integration
 *Aligning Team Structure with Domain-Centric Architecture*
 
-> **📘 Prerequisites:** This document integrates Team Topologies organizational patterns with [Domain-Centric Architecture](./README.md). Read the main document first for technical architecture patterns.
+> **📘 Prerequisites:** This document integrates Team Topologies organizational patterns with [Domain-Centric Architecture](../README.md). Read the main document first for technical architecture patterns.
 
 ## Introduction
 
-[Domain-Centric Architecture](./README.md) defines the **technical structure** of systems. Team Topologies provides the **organizational structure** for the teams building those systems.
+[Domain-Centric Architecture](../README.md) defines the **technical structure** of systems. Team Topologies provides the **organizational structure** for the teams building those systems.
 
 **Key Insight:** System architecture and team structure should align (Conway's Law).
 
@@ -30,7 +30,7 @@ This document shows how to:
 - Long-lived, stable team
 
 **Responsibilities:**
-- Own domain, application, and adapters (see [Domain-Centric Architecture](./README.md#layer-dependency-flow))
+- Own domain, application, and adapters (see [Domain-Centric Architecture](../architecture/dependency-structure.md#layer-dependency-flow))
 - Build, deploy, run, maintain
 - Respond to user needs
 - Continuous delivery
@@ -208,7 +208,7 @@ Enabling Team → Customer Team (Facilitating)
 **Rule:** One stream-aligned team owns one bounded context
 
 **Ownership Includes:**
-- All layers: domain, application, adapters, infrastructure (see [Domain-Centric Architecture Layers](./README.md#layer-dependency-flow))
+- All layers: domain, application, adapters, infrastructure (see [Domain-Centric Architecture Layers](../architecture/dependency-structure.md#layer-dependency-flow))
 - Code, tests, deployment, monitoring, support
 - Autonomy over internal implementation
 - Responsibility for published interfaces/APIs
@@ -226,7 +226,7 @@ Order Team owns Order Bounded Context
 └── On-call rotation
 ```
 
-> **For bounded context technical structure:** See [Domain-Centric Architecture](./README.md#java-package-structure)
+> **For bounded context technical structure:** See [Domain-Centric Architecture](../architecture/package-structure.md#java-package-structure)
 
 ### Code Ownership
 
@@ -239,7 +239,7 @@ Order Team owns Order Bounded Context
 **Shared Kernel Exception:**
 - Requires explicit team agreement
 - Coordinate changes via architecture guild
-- Use sparingly (see [Domain-Centric Architecture - Shared Kernel](./README.md#packaging-rules))
+- Use sparingly (see [Domain-Centric Architecture - Shared Kernel](../architecture/rules.md#packaging-rules))
 
 ### API/Interface Ownership
 
@@ -264,7 +264,7 @@ Order Team's APIs:
     └── v2 maintains backward compatibility with v1
 ```
 
-> **For adapter and API technical patterns:** See [Domain-Centric Architecture - Adapter Layer](./README.md#adapter-layer-rules)
+> **For adapter and API technical patterns:** See [Domain-Centric Architecture - Adapter Layer](../architecture/rules.md#adapter-layer-rules)
 
 ## Conway's Law
 
@@ -432,7 +432,7 @@ Platform Team provides:
 - Well-defined API
 - Complicated subsystem hides complexity
 
-> **For technical integration patterns:** See [Domain-Centric Architecture - Integration Patterns](./README.md#integration-patterns)
+> **For technical integration patterns:** See [Domain-Centric Architecture - Integration Patterns](../architecture/integration-patterns.md#integration-patterns)
 
 ## Deployment & Operations
 
@@ -485,7 +485,7 @@ Order Team Monitoring:
 
 ## Progressive Structure Evolution
 
-Teams and architecture should evolve together. For detailed package structure evolution, see [Domain-Centric Architecture - Progressive Complexity](./README.md#progressive-complexity-principle).
+Teams and architecture should evolve together. For detailed package structure evolution, see [Domain-Centric Architecture - Progressive Complexity](../architecture/package-structure.md#progressive-complexity-principle).
 
 ### Phase 1: New Stream-Aligned Team (Week 1-2)
 
@@ -595,6 +595,6 @@ Single Deployment, Multiple Teams
 - Use platform team to reduce cognitive load
 
 **Cross-References:**
-- Technical architecture: [Domain-Centric Architecture](./README.md)
+- Technical architecture: [Domain-Centric Architecture](../README.md)
 - Deployment strategies: [Deployment Patterns](./deployment-patterns.md)
 - Modular monolith: [Spring Modulith Implementation](./spring-modulith.md)

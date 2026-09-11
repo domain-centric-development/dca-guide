@@ -1,7 +1,7 @@
 # Spring Modulith Implementation
 *Practical Implementation of Domain-Centric Architecture using Spring Modulith*
 
-> **📘 Prerequisites:** This document shows how to implement [Domain-Centric Architecture](./README.md) using Spring Modulith. Read the main document first for core patterns and rules.
+> **📘 Prerequisites:** This document shows how to implement [Domain-Centric Architecture](../README.md) using Spring Modulith. Read the main document first for core patterns and rules.
 
 > **☕ Java/Spring specific.** Everything here assumes Spring Boot and Spring Modulith. The .NET
 > equivalents — project boundaries plus ArchUnitNET instead of module verification, an outbox or
@@ -10,7 +10,7 @@
 
 ## Introduction
 
-Spring Modulith is a framework for building **modular monolithic applications** with Spring Boot. It implements the [Domain-Centric Architecture](./README.md) patterns while providing:
+Spring Modulith is a framework for building **modular monolithic applications** with Spring Boot. It implements the [Domain-Centric Architecture](../README.md) patterns while providing:
 
 - **Module Verification** - Enforces architectural boundaries at compile/test time
 - **Event-Based Communication** - Application Events between modules
@@ -25,7 +25,7 @@ Spring Modulith Module = Bounded Context (from DDD)
                        = Domain-Centric Architecture Package Structure
 ```
 
-> **Note:** For core bounded context and layer concepts, see [Domain-Centric Architecture](./README.md).
+> **Note:** For core bounded context and layer concepts, see [Domain-Centric Architecture](../README.md).
 
 ## What is Spring Modulith?
 
@@ -59,7 +59,7 @@ com.company.ecommerce
 **Alignment:**
 - One module = one bounded context (typical)
 - One team owns one module (recommended)
-- Module follows [Domain-Centric Architecture layers](./README.md#layer-dependency-flow)
+- Module follows [Domain-Centric Architecture layers](../architecture/dependency-structure.md#layer-dependency-flow)
 
 ### Module Types
 
@@ -109,14 +109,14 @@ package com.company.ecommerce.order.events;
 
 **Internal Package (`internal/`):**
 - Hidden implementation
-- Contains domain, application, adapter layers (see [Domain-Centric Architecture](./README.md#java-package-structure))
+- Contains domain, application, adapter layers (see [Domain-Centric Architecture](../architecture/package-structure.md#java-package-structure))
 - Other modules CANNOT access
 
 ## Event-Driven Architecture in Spring Modulith
 
 ### Domain Events vs Integration Events
 
-Spring Modulith supports two types of events that align with [Domain-Driven Design principles](./README.md#domain-event-rules-internal-to-bounded-context):
+Spring Modulith supports two types of events that align with [Domain-Driven Design principles](../architecture/rules.md#domain-event-rules-internal-to-bounded-context):
 
 #### Domain Events (Internal to Module)
 
@@ -718,7 +718,7 @@ com.company.ecommerce
 │           └── OrderModuleConfiguration.java
 ```
 
-> **Note:** The `internal/` structure follows [Domain-Centric Architecture layers](./README.md#java-package-structure). See main document for layer rules and responsibilities.
+> **Note:** The `internal/` structure follows [Domain-Centric Architecture layers](../architecture/package-structure.md#java-package-structure). See main document for layer rules and responsibilities.
 
 ### Module Configuration
 
@@ -752,7 +752,7 @@ When creating a Spring Modulith module (bounded context), **start with minimal s
 
 > **Core Principle:** The full package structure shown in this document is for **mature modules**. Don't start there!
 
-For general progressive complexity guidelines, see [Domain-Centric Architecture](./README.md#progressive-complexity-principle).
+For general progressive complexity guidelines, see [Domain-Centric Architecture](../architecture/package-structure.md#progressive-complexity-principle).
 
 ### Phase 1: Minimal Module Structure (Starting Out)
 
@@ -861,7 +861,7 @@ com.company.ecommerce.order/
 
 The Shared Kernel is a **small, carefully controlled** `shared/` module containing code used across multiple modules.
 
-> **Important:** For general Shared Kernel concepts and when to use it, see [Domain-Centric Architecture](./README.md#packaging-rules).
+> **Important:** For general Shared Kernel concepts and when to use it, see [Domain-Centric Architecture](../architecture/rules.md#packaging-rules).
 
 ### Spring Modulith Configuration
 
@@ -1105,7 +1105,7 @@ dependencies {
 
 ## Summary
 
-**Spring Modulith implements [Domain-Centric Architecture](./README.md) by:**
+**Spring Modulith implements [Domain-Centric Architecture](../README.md) by:**
 
 1. **Enforcing Boundaries** - Modules = Bounded Contexts with verified boundaries
 2. **Event-Driven** - Domain Events and Integration Events with guaranteed delivery
@@ -1119,7 +1119,7 @@ dependencies {
 - Event-based integration survives extraction
 
 **Cross-References:**
-- Core architecture: [Domain-Centric Architecture](./README.md)
+- Core architecture: [Domain-Centric Architecture](../README.md)
 - Deployment options: [Deployment Patterns](./deployment-patterns.md)
 - Team alignment: [Team Topologies Integration](./team-topologies.md)
 

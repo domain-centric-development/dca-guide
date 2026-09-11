@@ -1,11 +1,11 @@
 # Deployment Patterns
 *Extending Domain-Centric Architecture with Deployment Strategies*
 
-> **📘 Prerequisites:** This document extends [Domain-Centric Architecture](./README.md). Read the main document first for core architectural patterns, layers, and rules.
+> **📘 Prerequisites:** This document extends [Domain-Centric Architecture](../README.md). Read the main document first for core architectural patterns, layers, and rules.
 
 ## Introduction
 
-While the main [Domain-Centric Architecture](./README.md) defines the logical structure of bounded contexts and layers, this document addresses **deployment strategies** and **physical boundaries**.
+While the main [Domain-Centric Architecture](../README.md) defines the logical structure of bounded contexts and layers, this document addresses **deployment strategies** and **physical boundaries**.
 
 **Key Distinction:**
 - **Logical Boundary** = Bounded Context (DDD concept)
@@ -106,7 +106,7 @@ When you split a Bounded Context into multiple services, you need **two types of
   - Represent public contracts
 - **Example:** `OrderCreatedEvent` published by Order BC, consumed by Inventory BC
 
-For core event patterns, see [Domain-Centric Architecture - Event Rules](./README.md#domain-event-rules-internal-to-bounded-context).
+For core event patterns, see [Domain-Centric Architecture - Event Rules](../architecture/rules.md#domain-event-rules-internal-to-bounded-context).
 
 #### Internal Events (Within Bounded Context, Across Services)
 - **Purpose:** Communication between services within same bounded context
@@ -475,6 +475,6 @@ Phase 4: Multi-Service BC (rarely needed)
 5. **Team Alignment** - Let team structure guide service boundaries
 
 **Cross-References:**
-- Core architecture patterns: [Domain-Centric Architecture](./README.md)
+- Core architecture patterns: [Domain-Centric Architecture](../README.md)
 - Modular monolith implementation: [Spring Modulith Implementation](./spring-modulith.md)
 - Team structure alignment: [Team Topologies Integration](./team-topologies.md)

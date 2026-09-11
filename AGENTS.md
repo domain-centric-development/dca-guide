@@ -30,7 +30,7 @@ These hold for anyone working in any of the DCA repositories — human or agent 
 
 This is a **documentation repository** focused on Domain-Centric Architecture - a synthesis of Domain-Driven Design (DDD), Hexagonal Architecture (Ports & Adapters), and Clean Architecture principles. It contains no source code, only comprehensive architectural guidance and implementation patterns.
 
-**Purpose:** Reference documentation for teams implementing domain-centric architectures in Java/Spring Boot projects — and, through `language-mappings.md`, in C#/.NET. The guide is written in Java; every concept has a documented .NET spelling.
+**Purpose:** Reference documentation for teams implementing domain-centric architectures in Java/Spring Boot projects — and, through `topics/language-mappings.md`, in C#/.NET. The guide is written in Java; every concept has a documented .NET spelling.
 
 **Building blocks and rules are published libraries**, not guide-owned code: Java `dev.domaincentric:dca-building-blocks` + `dca-archunit` (Maven Central), .NET `DomainCentric.BuildingBlocks` + `DomainCentric.ArchRules(.Xunit)` (NuGet). The guide shows the dependency and describes the markers; it never presents them as files to write. Versions quoted in snippets (`0.1.2` / `0.3.0`) must follow releases of `../dca-java` and `../dca-dotnet`.
 
@@ -43,7 +43,7 @@ A reader may have this repository and nothing else. Content may be used freely, 
 - ❌ no links to `dca-book/…`, no `https://github.com/domain-centric-development/dca-ecommerce-sample-java`, no source
   paths like `dca-ecommerce-sample-java/src/main/java/…`
 - ✅ describe the pattern, show the code inline, name a class — as self-contained text
-- ✅ links *within* this repository (`./spring-modulith.md`, `#section-anchors`)
+- ✅ links *within* this repository (`../topics/spring-modulith.md`, `#section-anchors`)
 
 Direction is one-way: the sample may cite this guide, this guide never cites the sample. The
 knowledge bundle generated from these documents copies their text verbatim, so a link added here
@@ -53,29 +53,46 @@ reappears there — where it is even less resolvable.
 
 ## Documentation Structure
 
-The repository contains interconnected markdown documents:
+Three folders, one landing page. A document's folder says what kind of document it is.
 
-### Core Documentation
-- **README.md** - Main architectural reference guide covering:
-  - Four-layer architecture (Domain, Application, Adapter, Infrastructure)
-  - Tactical DDD patterns (Entities, Value Objects, Aggregates, Domain Events)
-  - Strategic DDD patterns (Bounded Contexts, Shared Kernel, Context Maps)
-  - Java package structures and naming conventions
-  - Comprehensive architectural rules and principles
-  - Integration patterns and dependency flows
+```
+README.md              landing page: what DCA is, and the index over every document below
+architecture/          the architecture itself — the former README, split by topic
+topics/                the deeper guides, each self-contained
+process/               how work is delivered and decisions recorded
+```
 
-### Supplementary Guides
-- **spring-modulith.md** - Practical implementation using Spring Modulith framework
-- **archunit-governance.md** - Automated architecture testing with the `dca-archunit` rule library (and ArchUnitNET for .NET); plain-ArchUnit examples explain what each rule checks
-- **language-mappings.md** - Java/Spring ↔ C#/.NET: packages, building blocks, ports, context declaration, solution layout, framework concepts, governance
-- **clean-architecture-comparison.md** - Comparison with Clean Architecture and when to use each
-- **deployment-patterns.md** - Self-Contained Systems, service decomposition, deployment strategies
-- **team-topologies.md** - Organizational patterns and team structure alignment
+### `architecture/` — the core
+- **elements.md** — the four layers, the use-case pattern, the building blocks the library defines
+- **strategic-design.md** — bounded contexts, the shared kernel and what may enter it
+- **repository-vs-store.md** — the two persistence-shaped output ports, domain model vs. persistence model
+- **rules.md** — the rule catalog in prose: per layer, per building block, per boundary
+- **package-structure.md** — package templates, progressive complexity, features, naming conventions
+- **dependency-structure.md** — dependency direction, what an adapter may inject, repairing a wrong one
+- **integration-patterns.md** — Open Host Service, composite adapter, enriched read model, events
+- **quick-reference.md** — placement tables and a checklist; restates, never rules
+- **references.md** — the literature this rests on
 
-### Templates
-- **factory.md** - Delivering one story: the backlog contract, outcome events, the six stages with their
+### `topics/` — the deeper guides
+- **spring-modulith.md** — practical implementation using Spring Modulith
+- **archunit-governance.md** — automated architecture testing with the `dca-archunit` rule library (and ArchUnitNET for .NET); plain-ArchUnit examples explain what each rule checks
+- **language-mappings.md** — Java/Spring ↔ C#/.NET: packages, building blocks, ports, context declaration, solution layout, framework concepts, governance
+- **clean-architecture-comparison.md** — comparison with Clean Architecture and when to use each
+- **deployment-patterns.md** — Self-Contained Systems, service decomposition, deployment strategies
+- **team-topologies.md** — organizational patterns and team structure alignment
+- **domain-services-with-data-dependencies.md** — a domain service that needs data it cannot reach
+- **e2e-testing.md** — browser tests with the Page Object pattern
+- **jwt-implementation-guide.md** — authentication across contexts
+
+### `process/`
+- **factory.md** — delivering one story: the backlog contract, outcome events, the six stages with their
   hand-over files, the gates between them, and the two questions a run must hand to a human
-- **adr-template.md** - Architecture Decision Record template
+- **adr-template.md** — Architecture Decision Record template
+
+**Node paths in the knowledge catalog follow the file name, not the folder**: `topics/spring-modulith.md`
+is `guide/spring-modulith.md` in the bundle. Two documents may therefore never share a file name,
+whatever folder they sit in. Moving a document between these folders is free; renaming one is not —
+it needs a `redirects.json` entry in `dca-knowledge-catalog`.
 
 ## Key Architectural Patterns
 
@@ -207,11 +224,12 @@ When updating this documentation, maintain:
 
 ### Key Sections to Update Together
 If changing architectural patterns, update these sections across documents:
-1. Main README.md rules and package structures
-2. Spring Modulith implementation examples
-3. ArchUnit test examples
-4. Deployment pattern implications
-5. `language-mappings.md` — every new Java concept or rename needs its C# row
+1. `architecture/rules.md` and `architecture/package-structure.md`
+2. `topics/spring-modulith.md` — implementation examples
+3. `topics/archunit-governance.md` — test examples
+4. `topics/deployment-patterns.md` — deployment implications
+5. `topics/language-mappings.md` — every new Java concept or rename needs its C# row
+6. `architecture/quick-reference.md` — it restates placements and must never contradict them
 
 ### Code Examples
 All code examples should:
@@ -221,10 +239,10 @@ All code examples should:
 - Include comments explaining the pattern being demonstrated
 
 ### Cross-Document Dependencies
-- Spring Modulith guide assumes knowledge from main README.md
-- ArchUnit guide references rules from main README.md
-- Deployment patterns extend concepts from main README.md and Team Topologies
-- All guides reference back to core concepts in README.md
+- The Spring Modulith guide assumes `architecture/elements.md` and `architecture/package-structure.md`
+- The ArchUnit guide references the rules stated in `architecture/rules.md`
+- Deployment patterns extend `architecture/strategic-design.md` and Team Topologies
+- Every topic points back to the core documents in `architecture/`
 
 ## Git Workflow
 

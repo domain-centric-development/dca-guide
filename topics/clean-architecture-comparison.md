@@ -1,7 +1,7 @@
 # Domain-Centric Architecture vs Clean Architecture
 *Understanding the Differences and When to Use Each*
 
-> **📘 Prerequisites:** This document compares Domain-Centric Architecture with Clean Architecture. Read [Domain-Centric Architecture](./README.md) first to understand the approach being compared.
+> **📘 Prerequisites:** This document compares Domain-Centric Architecture with Clean Architecture. Read [Domain-Centric Architecture](../README.md) first to understand the approach being compared.
 
 ## Introduction
 
@@ -156,7 +156,7 @@ public class Order implements AggregateRoot<OrderId> {
 }
 ```
 
-> **See:** [Domain-Centric Architecture - Domain Layer Rules](./README.md#domain-layer-rules) for full DDD patterns
+> **See:** [Domain-Centric Architecture - Domain Layer Rules](../architecture/rules.md#domain-layer-rules) for full DDD patterns
 
 ### 2. Strategic Design
 
@@ -175,7 +175,7 @@ public class Order implements AggregateRoot<OrderId> {
 - Includes both **tactical** (layers) and **strategic** (bounded contexts) design
 - Explicit guidance on how to partition large systems
 
-> **See:** [Domain-Centric Architecture - Strategic Design Rules](./README.md#strategic-design-rules)
+> **See:** [Domain-Centric Architecture - Strategic Design Rules](../architecture/rules.md#strategic-design-rules)
 
 ### 3. Domain Events
 
@@ -215,7 +215,7 @@ public class CreateOrderUseCase {
 }
 ```
 
-> **See:** [Domain-Centric Architecture - Domain Event Rules](./README.md#domain-event-rules-internal-to-bounded-context)
+> **See:** [Domain-Centric Architecture - Domain Event Rules](../architecture/rules.md#domain-event-rules-internal-to-bounded-context)
 
 ### 4. Terminology
 
@@ -270,7 +270,7 @@ com.company.project
 
 **Key Difference:** Domain-Centric Architecture organizes by **bounded context first**, then by layer.
 
-> **See:** [Domain-Centric Architecture - Package Structure](./README.md#java-package-structure)
+> **See:** [Domain-Centric Architecture - Package Structure](../architecture/package-structure.md#java-package-structure)
 
 ### 6. Presenter Pattern
 
@@ -347,7 +347,7 @@ public interface OrderRepository {
 
 **Repository interface placement:** Classic DDD literature (Evans, Vernon, Millett/Tune) places repository interfaces in the domain layer. DCA deliberately places them in the application layer as output ports — consistent with Hexagonal and Clean Architecture, where the use case owns the contracts it depends on. The domain then holds no opinion about persistence at all: it neither declares the interface nor knows that one exists.
 
-> **See:** [Domain-Centric Architecture - Aggregate Rules](./README.md#aggregate-rules)
+> **See:** [Domain-Centric Architecture - Aggregate Rules](../architecture/rules.md#aggregate-rules)
 
 ### 8. Cross-Context Integration
 
@@ -361,7 +361,7 @@ public interface OrderRepository {
 - Integration Events vs Domain Events
 - Context Map
 
-> **See:** [Domain-Centric Architecture - Integration Patterns](./README.md#integration-patterns)
+> **See:** [Domain-Centric Architecture - Integration Patterns](../architecture/integration-patterns.md#integration-patterns)
 
 ## Visual Comparison
 
@@ -629,7 +629,7 @@ com.company.project
 
 ## Cross-References
 
-- **Core patterns:** [Domain-Centric Architecture](./README.md)
+- **Core patterns:** [Domain-Centric Architecture](../README.md)
 - **Deployment strategies:** [Deployment Patterns](./deployment-patterns.md)
 - **Spring implementation:** [Spring Modulith Implementation](./spring-modulith.md)
 - **Team structure:** [Team Topologies Integration](./team-topologies.md)
@@ -648,4 +648,4 @@ com.company.project
 - **[Hexagonal Architecture](https://alistair.cockburn.us/hexagonal-architecture/)** by Alistair Cockburn (2005)
 - **[Get Your Hands Dirty on Clean Architecture](https://thombergs.gumroad.com/l/gyhdoca)** by Tom Hombergs (2019)
 
-For comprehensive references, see [Domain-Centric Architecture - References & Further Reading](./README.md#references--further-reading).
+For comprehensive references, see [Domain-Centric Architecture - References & Further Reading](../architecture/references.md).

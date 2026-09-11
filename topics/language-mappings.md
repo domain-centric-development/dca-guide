@@ -2,7 +2,7 @@
 
 *One architecture, two spellings*
 
-> **📘 Prerequisites:** This document translates the concepts of [Domain-Centric Architecture](./README.md) from the Java they are written in to C#/.NET. Read the main document first; the rules, layers and package shapes are the same in both languages.
+> **📘 Prerequisites:** This document translates the concepts of [Domain-Centric Architecture](../README.md) from the Java they are written in to C#/.NET. Read the main document first; the rules, layers and package shapes are the same in both languages.
 
 ---
 
