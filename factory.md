@@ -188,6 +188,16 @@ format two parsers cover, so requiring it costs a project a flag, not a rewrite.
 genuinely has none, weaken the check explicitly and print that weakening next to every verdict it
 produces; a silent weakening is the same as none.
 
+**A report is evidence only if it is *this* run's and *this* test's.** Two ways to be wrong about
+a report, and both look like a pass. A file left by an earlier run still lies where the reader
+looks, so a runner that finds nothing now inherits yesterday's verdict — which means a report
+counts only where its content changed or its timestamp is younger than the invocation, read against
+the filesystem's own clock rather than the process's. And a report that names a *sibling* of the
+mapped test says nothing about it: where a runner reports display names instead of method names,
+the mapping has to come from the declaration in the code, never from membership of the same class.
+A class with two reported cases and no name that matches is no evidence at all — attributing either
+of them would let one test's outcome decide another's criterion.
+
 **A test that was never red proves nothing.** The test stage records which selectors it saw fail;
 the build gate accepts a green test only if it is in that record. This is what closes the gap
 between "the criterion is met" and "something green exists".
