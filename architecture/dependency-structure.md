@@ -182,8 +182,9 @@ adapter layer part company:
 
 - An **incoming adapter** reaches no infrastructure at all — neither the global
   `{base}.infrastructure` nor its own module's `{module}.infrastructure` (`DCA-HEX-004`). A
-  controller that needs a technical capability declares an output port for it; something has to
-  implement that port, and a controller is not that something.
+  controller that needs a technical capability has two honest options: the use case needs it too and
+  declares an output port, or it is adapter mechanics and stays a plain class in the adapter package.
+  A port only the controller calls is not a port.
 - An **outgoing adapter** may use the global infrastructure and its own module's infrastructure —
   that is where a persistence adapter meets the `EntityManager` your configuration produced. What it
   may not touch is *another* module's infrastructure (`DCA-HEX-005`), which would tie two contexts
@@ -218,8 +219,8 @@ a framework annotation and always correct; a reference from that same controller
 
 When an adapter needs something that sits in infrastructure, one of three moves resolves it:
 
-1. **Declare it as an output port.** The interface goes into the application layer, the
-   implementation into `adapter/outgoing`.
+1. **Declare it as an output port** — when a use case needs the capability. The interface goes into
+   the application layer, the implementation into `adapter/outgoing`, and the use case is its caller.
 
    ```java
    // {context}/application/shared/MetricsPublisher.java
@@ -233,5 +234,6 @@ When an adapter needs something that sits in infrastructure, one of three moves 
 
 2. **Move it into the shared kernel** when it is framework-agnostic and every context needs it.
 
-3. **Move the concern into the use case.** Often the adapter should not have had it at all — the
-   application layer is where the decision belongs.
+3. **Move the concern into the use case, or keep it in the adapter.** Often the adapter should not
+   have had it at all — the application layer is where the decision belongs. What remains adapter
+   mechanics (a cookie, a header, a token) stays a class in the adapter package without a port marker.

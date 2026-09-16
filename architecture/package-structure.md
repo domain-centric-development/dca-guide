@@ -20,13 +20,16 @@ com.company.project/
 │   │   ├── incoming/        Controllers, Event Consumers, CLI (call Input Ports)
 │   │   └── outgoing/        Repository Impl, API Clients, Publishers (implement Output Ports)
 │   │
-│   └── infrastructure/      [FRAMEWORKS & DRIVERS LAYER]
-│                            Framework-specific configuration and cross-cutting concerns
-│                            Spring, JPA, Kafka config, Logging, Security
+│   ├── infrastructure/      [FRAMEWORKS & DRIVERS LAYER]
+│   │                        Framework-specific configuration and cross-cutting concerns
+│   │                        Spring, JPA, Kafka config, Logging, Security
+│   │
+│   └── common/annotation/   Custom annotations only this context reads (optional)
 │
 ├── sharedkernel/            [SHARED ACROSS ALL CONTEXTS - Keep Minimal]
 │   ├── application/shared/  Application-specific ports shared by several contexts (IdentityProvider)
 │   ├── domain/model/        Universal value objects (Money, Address, etc.)
+│   ├── common/annotation/   Custom framework-free annotations read across contexts (see Where a custom annotation lives)
 │   └── adapter/outgoing/    Shared adapters only where no library ships them (Spring: dca-spring does)
 │
 └── infrastructure/          [GLOBAL INFRASTRUCTURE]
@@ -345,18 +348,20 @@ com.company.project
 │   │       └── IdentityProvider.java   #  project-specific shared port: extends OutputPort
 │   │   #  DomainEventPublisher / TransactionBoundary implementations: dca-spring (auto-configured);
 │   │   #  a non-Spring application writes them under adapter/outgoing/event and infrastructure/transaction
-│   └── domain/
-│       ├── model/ (Universal value objects)
-│       │   ├── Money.java
-│       │   ├── Price.java
-│       │   ├── ProductId.java  #  Shared product identifier
-│       │   └── UserId.java     #  Shared user identifier
-│       └── specification/ (Specification pattern implementations)
-│           ├── CompositeSpecification.java
-│           ├── AndSpecification.java
-│           ├── OrSpecification.java
-│           ├── NotSpecification.java
-│           └── SpecificationVisitor.java
+│   ├── domain/
+│   │   ├── model/ (Universal value objects)
+│   │   │   ├── Money.java
+│   │   │   ├── Price.java
+│   │   │   ├── ProductId.java  #  Shared product identifier
+│   │   │   └── UserId.java     #  Shared user identifier
+│   │   └── specification/ (Specification pattern implementations)
+│   │       ├── CompositeSpecification.java
+│   │       ├── AndSpecification.java
+│   │       ├── OrSpecification.java
+│   │       ├── NotSpecification.java
+│   │       └── SpecificationVisitor.java
+│   └── common/
+│       └── annotation/ (Custom framework-free annotations read across contexts, e.g. AsyncInitialize.java)
 │
 └── infrastructure/ (cross-cutting concerns)
     ├── configuration/

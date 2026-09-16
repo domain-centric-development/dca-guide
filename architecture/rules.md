@@ -176,11 +176,11 @@ adapter behind it does. Nothing above this line depends on the answer.
 - Use case knows nothing about persistence details
 
 ### Authorization Rules
-- Authorization ("may *this caller* do this?") is decided in the use case; the caller arrives as a field of the Command/Query, resolved by the incoming adapter through the identity output port
+- Authorization ("may *this caller* do this?") is decided in the use case; the caller arrives as a field of the Command/Query, which the incoming adapter fills from the authenticated request
 - A use case that acts on a caller's resource asks the repository a scoped question (`findByIdForCustomer`), never an open lookup followed by a comparison
 - A claims-only gate (a role on the token) may sit in the incoming adapter — it reads nothing but the caller
 - The domain never knows the caller: no `User` parameter on aggregate methods, no role checks in domain code — invariants only
-- The identity port is a project-specific output port in `application/shared/` (context or shared kernel), implemented in the authenticating context's outgoing adapter; the authentication filter enriches every request and gates none
+- How the incoming adapter learns the caller — a security context, a token, a session — is adapter mechanics, not an output port; the authentication filter enriches every request and gates none
 - A use case with no caller (event consumers, scheduled work) stays unscoped and documents it
 
 ### Input Port Rules
@@ -193,13 +193,15 @@ adapter behind it does. Nothing above this line depends on the answer.
 - Input Port belongs to application layer
 
 ### Output Port Rules
-- Output Port defines infrastructure need
+- Output Port defines a capability a use case needs from outside the process boundary: persistence, another context, an external system, messaging
+- Output Port is called by a use case; an interface only adapters or infrastructure call is not a port
 - Output Port uses domain language and types
 - Output Port implemented by adapters
 - Output Port has no framework dependencies
 - Output Port belongs to application layer
 - Repository interfaces are Output Ports
 - Event Publisher interfaces are Output Ports
+- Not Output Ports: a transaction boundary (execution semantics), the current caller (a Command/Query field the incoming adapter fills), cookies and tokens (adapter mechanics), a question into the own context (a query use case or the published API)
 
 ### Repository Interface Rules
 - Repository interface in application layer
@@ -237,7 +239,7 @@ including the assertion that an unsaved mutation is invisible to the next reader
 
 ### Input Adapter Rules
 - Input Adapter calls Input Port
-- Input Adapter uses no infrastructure — a technical need is declared as an Output Port (`DCA-HEX-004`)
+- Input Adapter uses no infrastructure (`DCA-HEX-004`) — a capability the use case needs is declared as an Output Port there; adapter mechanics stay inside the adapter
 - Controller extracts data from HTTP request
 - Controller creates Input Data/DTO
 - Controller delegates to use case
