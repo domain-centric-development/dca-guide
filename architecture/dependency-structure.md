@@ -184,7 +184,8 @@ adapter layer part company:
   `{base}.infrastructure` nor its own module's `{module}.infrastructure` (`DCA-HEX-004`). A
   controller that needs a technical capability has two honest options: the use case needs it too and
   declares an output port, or it is adapter mechanics and stays a plain class in the adapter package.
-  A port only the controller calls is not a port.
+  Using the identity port to resolve the caller is fine — it translates request context into the
+  project's language; cookie or token handling is not a port.
 - An **outgoing adapter** may use the global infrastructure and its own module's infrastructure —
   that is where a persistence adapter meets the `EntityManager` your configuration produced. What it
   may not touch is *another* module's infrastructure (`DCA-HEX-005`), which would tie two contexts

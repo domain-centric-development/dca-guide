@@ -68,7 +68,7 @@ Shared kernel  | neutral metadata only | @Nullable, own annotations
 
 - [ ] Does this carry business logic (domain) or technical concern (everything else)?
 - [ ] Is this interface an input port (an actor calls it) or an output port (the application calls it)?
-- [ ] Does a use case call this output port? An interface only adapters or infrastructure call is not a port
+- [ ] Does this output port stand for something outside the process? Cookies, tokens and a question into the own context are not ports
 - [ ] Do all dependencies point inward?
 - [ ] Is the domain free of framework annotations?
 - [ ] Are the domain model and the persistence model separate types?
