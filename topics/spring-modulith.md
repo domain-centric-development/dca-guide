@@ -205,7 +205,7 @@ public record OrderCreatedEvent(
 Spring Modulith provides an **Event Publication Registry** that ensures reliable event delivery:
 
 **Features:**
-- **Persistent Events**: Events marked with `@Externalized` are persisted to database
+- **Persistent Events**: every publication to an `@ApplicationModuleListener` is persisted to the database
 - **Guaranteed Delivery**: Events are marked complete only after successful processing
 - **Automatic Retry**: Failed event handlers are retried automatically
 - **Idempotency Support**: Handlers can be idempotent via event IDs
@@ -214,10 +214,10 @@ Spring Modulith provides an **Event Publication Registry** that ensures reliable
 **Configuration:**
 ```java
 @Configuration
-@EnableApplicationModuleListener  // Enables async event processing
+@EnableAsync  // @ApplicationModuleListener handlers run asynchronously
 public class EventConfiguration {
-    // Spring Modulith auto-configures Event Publication Registry
-    // when spring-modulith-events-jdbc or spring-modulith-events-jpa is on classpath
+    // Spring Modulith auto-configures the Event Publication Registry
+    // when spring-modulith-events-jdbc or spring-modulith-events-jpa is on the classpath
 }
 ```
 
