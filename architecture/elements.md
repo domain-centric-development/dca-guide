@@ -28,7 +28,7 @@ The application layer organizes business operations using a structured **Use Cas
 - **Input Port** - Interface defining use case contract (`extends UseCase<INPUT, OUTPUT>`)
 - **Command/Query** - Input model (Command for writes, Query for reads)
 - **Result** - Output model (standardized return type)
-- **Output Port** - Interface for a capability the use case needs from outside its process boundary (repositories, other contexts, external systems, publishers, the caller's identity)
+- **Output Port** - Interface for a capability the application needs but does not own (repositories, other contexts, external systems, publishers, the caller's identity)
 
 **Organization:**
 ```text
@@ -99,18 +99,21 @@ public record CreateOrderResult(OrderId orderId, Money total, OrderStatus status
 ### What is a port, and what is not
 
 An **input port** is what the application offers to its drivers: one interface per use case, called
-by an incoming adapter. An **output port** is a capability needed from something outside the
-process boundary of the use case: persistence, another bounded context, an external system,
-messaging, and the identity of the caller when it comes from an identity system. Both are declared
-in the application layer. A use case calls output ports; an incoming adapter may use one port too —
-the identity port, which translates request context into the project's language before the caller
-becomes a field of the Command or Query.
+by an incoming adapter. An **output port** is a capability the application needs but does not own:
+persistence, another bounded context, an external system, messaging, the identity of the caller. The
+application declares it in its own language; an adapter fulfils it, whether that adapter talks to a
+database, a broker, a sibling module or a `HashMap`. What makes it a port is responsibility and
+dependency direction, not distance: an in-memory adapter in the same process fulfils an output port
+as well as a remote one. Both port kinds are declared in the application layer. A use case calls
+output ports; an incoming adapter may use one port too — the identity port, which translates request
+context into the project's language before the caller becomes a field of the Command or Query.
 
 Not everything a use case calls is a port, and not every interface an adapter implements is one:
 
 - **Execution semantics** are not a port. A transaction boundary defines how several port calls run
-  together; it stands for nothing outside the process. `TransactionBoundary` lives in the building
-  blocks' `application` package and does not extend `OutputPort`.
+  together; it is no capability the application lacks, it is how the application runs.
+  `TransactionBoundary` lives in the building blocks' `application` package and does not extend
+  `OutputPort`.
 - **Adapter-internal mechanics** are not a port. Cookies, tokens, sessions and response headers
   belong to the incoming adapter that owns the protocol. An interface for them may exist, but it
   lives in the adapter package and carries no `OutputPort` marker.
@@ -118,8 +121,9 @@ Not everything a use case calls is a port, and not every interface an adapter im
   bounded context whether an account exists or an order is open, the call points inward: that is a
   query use case or the context's published API.
 
-The test in one sentence: *does this interface stand for something outside the process that the
-application needs?* If not, drop the `OutputPort` marker and put the type where its caller lives.
+The test in one sentence: *does the application need this capability without owning it, and does
+the dependency point from the adapter to the port?* If not, drop the `OutputPort` marker and put
+the type where its caller lives.
 
 ### Shaping the Result
 
@@ -207,7 +211,7 @@ maps the answer to a route.
 
 - **Use Case / Application Service** - Orchestrates business operations
 - **Input Port** - Interface defining use case entry point
-- **Output Port** - Interface for a capability needed from outside the process
+- **Output Port** - Interface for a capability the application needs but does not own
 - **Command** - Request to change state
 - **Query** - Request to retrieve data
 - **Input Data / DTO** - Data structure for use case input

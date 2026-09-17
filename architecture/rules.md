@@ -193,7 +193,7 @@ adapter behind it does. Nothing above this line depends on the answer.
 - Input Port belongs to application layer
 
 ### Output Port Rules
-- Output Port defines a capability needed from outside the process boundary of the use case: persistence, another context, an external system, messaging, and the caller's identity when it comes from an identity system
+- Output Port defines a capability the application needs but does not own — persistence, another context, an external system, messaging, the caller's identity — declared in the application's language and fulfilled by an adapter, in-memory or remote alike
 - Output Port is called by a use case — or by an incoming adapter that translates request context into the project's language (the identity port); an interface that only serves adapter mechanics is not a port
 - Output Port uses domain language and types
 - Output Port implemented by adapters
