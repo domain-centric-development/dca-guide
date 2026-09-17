@@ -378,13 +378,25 @@ with its own `aud` over adding privileged roles to the customer token.
 
 ## 7. Cookie Requirements
 
-| Attribute | Access Token (`shop-session`) | Refresh Token (`shop-refresh`) | Visitor Token (`shop-identity`) |
-|-----------|------------------------------|-------------------------------|--------------------------------|
-| `HttpOnly` | `true` | `true` | `true` |
-| `Secure` | `true` (env-driven) | `true` (env-driven) | `true` (env-driven) |
-| `SameSite` | `Strict` | `Strict` | `Lax` |
-| `Path` | `/` | `/auth/refresh` | `/` |
-| `MaxAge` | 900 s | 2 592 000 s (30 days) | 2 592 000 s (30 days) |
+| Attribute | Access Token (`shop-session`) | Refresh Token (`shop-refresh`) | Visitor Token (`shop-identity`) | CSRF Token |
+|-----------|------------------------------|-------------------------------|--------------------------------|------------|
+| `HttpOnly` | `true` | `true` | `true` | `false` — the form script reads it |
+| `Secure` | `true` (env-driven) | `true` (env-driven) | `true` (env-driven) | `true` (env-driven) |
+| `SameSite` | `Strict` | `Strict` | `Lax` | follows the cookie it protects |
+| `Path` | `/` | `/auth/refresh` | `/` | `/` |
+| `MaxAge` | 900 s | 2 592 000 s (30 days) | 2 592 000 s (30 days) | session |
+
+**The CSRF token cookie belongs in this table.** It is easy to leave out, because no framework asks
+you to configure it: Spring Security and ASP.NET Core both write it themselves, with a default that
+is *not* the one you chose for your own cookies — no `SameSite` attribute at all in one case,
+`Strict` in the other. That difference only surfaces where the policies diverge, and then it looks
+like a broken form rather than a cookie problem: the identity cookie arrives, the token cookie does
+not, and every state-changing request fails as a *missing* token rather than a refused one.
+
+> **Rule:** cookies that have to survive the same journey carry the same policy. A request that
+> needs both an identity and a form token is refused unless both cookies reach the server. Set the
+> CSRF cookie's `SameSite` and `Secure` from the same configuration as the identity cookie instead
+> of accepting the framework's default.
 
 **Three-cookie design:**
 - `shop-identity` — visitor JWT (existing; survives session expiry, rotated on explicit logout — see §13)
@@ -414,7 +426,7 @@ ResponseCookie.from("shop-session", token)
 | Session expiry keeps the visitor identity | ✅ done |
 | Logout rotates the identity, clears the session | ✅ done |
 | `Secure` from configuration instead of hardcoded `false` | ✅ done (`app.security.jwt.secure-cookies`) |
-| `SameSite` on every cookie the subsystem writes | ✅ done (`Lax`) |
+| `SameSite` on every cookie the subsystem writes, the CSRF cookie included | ✅ done (`Lax`; the token cookie follows the identity cookie) |
 | Path-scoped `shop-refresh` and the renewal flow | ❌ **deferred** — no refresh token exists |
 
 The deferral is deliberate, and it has a price worth naming: without a refresh token there is no
@@ -422,6 +434,47 @@ revocation and no theft detection, so **the session cookie's lifetime is the bla
 stolen token**.
 A renewal flow needs a persistent token store, rotation with reuse detection, and an endpoint to
 scope the cookie to — larger than everything above combined.
+
+---
+
+## 7a. Framing: a Second Question, Not a Consequence of the First
+
+An application with cookie identity is eventually put in someone else's iframe — a slide deck, a
+documentation page, a partner portal, a demo. Two settings decide whether that works, and they are
+often collapsed into one because both say "embedded". They answer different questions:
+
+| | Decided by | What counts |
+|---|---|---|
+| May another page frame this application? | `X-Frame-Options` / `frame-ancestors` | the **origin** — scheme, host *and port* |
+| Do the cookies travel into that frame? | `SameSite` | the **site** — registrable domain; the port does **not** count |
+
+The consequence is the part that surprises people: a page on `localhost:3030` framing an
+application on `localhost:8080` is a *different origin* but the *same site*. Framing has to be
+allowed, and the `Lax` cookies travel unchanged — no cookie policy needs relaxing. A page on
+another domain is both, and only then is `SameSite=None` required, which in turn requires `Secure`
+and therefore HTTPS.
+
+Derive one from the other and you get a setting that is either too weak or unusable:
+
+- **Framing derived from the cookie policy** forces `SameSite=None` on a deployment that only ever
+  gets framed from a neighbouring port, widening the CSRF surface for nothing — and on a stack that
+  refuses to issue a token for a `Secure` cookie over plain HTTP it takes local development down
+  with it.
+- **The cookie policy derived from framing** hands out cross-site cookies to every embedding, which
+  is exactly the exposure `SameSite` exists to prevent.
+
+**Recommended shape:** one setting for framing, one for the cookie policy, both off by default in a
+real deployment. A reference or demo application may ship with framing on — being embeddable is
+what it is for — as long as that is a stated default and not a side effect of something else.
+
+### Where the header belongs
+
+Frameworks differ in a way worth knowing before you compare two implementations. Spring Security
+writes `X-Frame-Options` on **every** response. ASP.NET Core writes it only on responses that emit
+an antiforgery token, which is every page with a form and nothing else — so an application can
+appear framable while the page inside the frame is refused. Where the same behaviour is expected
+from two stacks, set the header in one place of your own rather than inheriting two defaults, and
+assert it on a response that renders no form.
 
 ---
 
@@ -453,10 +506,12 @@ The Double Submit Cookie pattern provides CSRF protection without server-side to
 A cross-site attacker cannot read the cookie (same-origin policy on JS), so cannot forge the matching header.
 
 ```java
-// Setting the CSRF cookie (not HttpOnly — must be readable by JavaScript)
+// Setting the CSRF cookie (not HttpOnly — must be readable by JavaScript).
+// sameSite and secure come from the same configuration as the identity cookie: a token that cannot
+// follow the identity it protects is worse than no token, because the request fails as incomplete.
 ResponseCookie.from("csrf-token", UUID.randomUUID().toString())
-    .sameSite("Lax")
-    .secure(secure)
+    .sameSite(cookiePolicy.sameSite())
+    .secure(cookiePolicy.secure())
     .path("/")
     .build();
 
@@ -500,6 +555,7 @@ CSRF is the worst of both worlds.
 | `shop-session` (access token) | `Strict` | No — `SameSite=Strict` is sufficient |
 | `shop-refresh` (refresh token) | `Strict` | No — `SameSite=Strict` is sufficient |
 | `shop-identity` (visitor token) | `Lax` | Yes if used for state changes — use Double Submit Cookie |
+| CSRF token | follows the cookie it protects | n/a — it *is* the mitigation, and it only works if it travels with that cookie |
 
 `SameSite` is defence in depth. A server-rendered shop whose forms change state on a cookie session carries the token
 in every form regardless of the `SameSite` value; the table above only tells you which cookie makes the token
@@ -859,6 +915,8 @@ Controllers receive the adapter model (absent → guest) and map it into the dom
 [ ] Reduce access token lifetime to 15 minutes
 [ ] Set Secure=true on all cookies in production (env-driven, not hardcoded false)
 [ ] SameSite=Strict for access + refresh cookies; SameSite=Lax for visitor cookie
+[ ] CSRF cookie takes its SameSite and Secure from the same configuration as the cookie it protects
+[ ] Framing decided on its own switch, not derived from the cookie policy (see §7a)
 [ ] Path=/auth/refresh on the refresh token cookie
 [ ] login_attempts table with per-email + per-IP rate limiting
 [ ] Configurable lockout thresholds via application.yml
