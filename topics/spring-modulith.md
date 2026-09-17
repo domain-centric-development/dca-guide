@@ -187,7 +187,7 @@ public record OrderCreatedEvent(
 | **Marker** | Optional `DomainEvent` | `implements Externalized` ⭐ |
 | **Serialization** | Not required | Required |
 | **Versioning** | Not required | Required |
-| **Delivery** | Sync (in-tx) *or* async (registry-backed) | Async, externalized via registry |
+| **Delivery** | Sync (in-tx) *or* async (registry-backed) | Async through the registry; externalized to a broker when another deployment consumes it |
 | **Persistence** | Only when delivered async (registry) | Yes (Event Publication Registry) |
 | **Retry** | Resubmission supported for registry-backed listeners | Configure bounded retries, backoff and manual replay |
 | **Visibility** | Private to module | Public to all modules |
@@ -197,8 +197,10 @@ public record OrderCreatedEvent(
 > A domain event handled by a synchronous listener runs in the publishing transaction and
 > needs neither. A domain event handled by an **async** `@ApplicationModuleListener` is
 > persisted in the registry and redelivered at-least-once — the same durable, in-process
-> transactional-outbox guarantee, still **without leaving the module**. The integration
-> event differs only in that its async delivery is *externalized* to a broker.
+> transactional-outbox guarantee, still **without leaving the module**. What makes an event an
+> integration event is that it crosses the module boundary as a published contract — the consumer
+> sits in another module. That holds for in-process delivery through the registry just as for a
+> broker; externalization is a deployment choice, not the definition.
 
 ### Spring Modulith Event Publication Registry
 
