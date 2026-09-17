@@ -199,10 +199,11 @@ caller") works over the layer packages alone. So the port is written per project
    repository a *scoped* question (`findByIdForCustomer(cartId, customerId)`) instead of loading by id and
    comparing afterwards. The incoming adapter resolves the caller through the port and fills the field; the
    use case never calls the identity port to find out on whose behalf it runs.
-5. **A claims-only gate may stay in the adapter.** "Does this token carry the staff role?" reads nothing but
-   the caller's claims and is a property of the *exposure*, so the REST resource or page controller may
-   check it and refuse. Anything that needs the resource — is this cart theirs — is a property of the
-   *operation* and belongs to the use case, through the command field of step 4.
+5. **A claims-only gate may stay in the adapter, declared not coded.** "Does this token carry the staff
+   role?" reads nothing but the caller's claims and is a property of the *exposure*, so the route may carry
+   it — as the framework's annotation, so the framework picks the status code. Anything that needs the
+   resource — is this cart theirs — is a property of the *operation* and belongs to the use case, through
+   the command field of step 4.
 6. **The domain never sees the caller.** No `User` parameter on an aggregate method, no role check in a
    value object; `cart.checkout()` protects *its* invariants (not empty, not already completed), the use
    case has already answered *who may*.
@@ -211,6 +212,14 @@ caller") works over the layer packages alone. So the port is written per project
 
 Refusals are decided in the use case and *rendered* in the adapter: whether a stranger's cart answers
 `403` or `404` is a protocol choice (a `403` confirms the id exists), and the REST resource makes it.
+
+A refusal also has to say the true thing about the caller. A caller who has not authenticated is
+*challenged* — `401`, with the scheme they should use — and a caller who authenticated but lacks the role is
+*forbidden* — `403`. That only works if an anonymous visitor is not authenticated: an authentication filter
+that enriches every request with an identity must mark the visitor's principal as anonymous, or the
+framework sees an authenticated caller everywhere and every refusal collapses into `403`. The identity still
+travels to the use cases — it carries the visitor's cart — only the security context stops claiming they
+logged in.
 
 - **InputPort** - Marker interface for all entry points to the application (called by driving adapters)
 - **OutputPort** - Marker interface for all dependencies the application needs (implemented by driven adapters)
