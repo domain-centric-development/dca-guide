@@ -910,18 +910,16 @@ com.company.project.shared/
 │   ├── Money.java
 │   ├── Address.java
 │   └── EmailAddress.java
-├── application/shared/  # Application ports every context reads the same way
-│   └── IdentityProvider.java
-└── exception/           # Base exceptions
-    ├── DomainException.java
-    └── NotFoundException.java
+└── application/shared/  # Application ports every context reads the same way
+    └── IdentityProvider.java
 ```
 
 > **The architectural markers are not in here.** `AggregateRoot`, `Entity`, `Value`, `DomainEvent`,
-> `InputPort`, `OutputPort` come from the `dca-building-blocks` dependency — writing them into a
-> shared module duplicates a library the project already has on its class path, under names the rule
-> suite does not recognise. The shared module holds what is *yours* and universal: value objects,
-> shared application ports, base exceptions.
+> `InputPort`, `OutputPort`, `DomainException`, `UseCaseException` come from the `dca-building-blocks`
+> dependency — writing them into a shared module duplicates a library the project already has on its
+> class path, under names the rule suite does not recognise. The shared module holds what is *yours*
+> and universal: value objects and shared application ports. A named failure belongs to the context
+> that raises it, so it is not in here either.
 
 ### Module Dependencies on Shared
 

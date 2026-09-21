@@ -10,10 +10,13 @@ entry is stated in full elsewhere in this guide; nothing here is a rule of its o
 | Entities, Value Objects | Domain | `Order`, `OrderId`, `Money` |
 | Domain Events | Domain | `OrderPlaced`, `OrderCancelled` |
 | Domain Services | Domain | `PricingService` |
+| Domain exceptions | Domain — beside the model, no `exception/` package | `InsufficientStockException` |
 | Input Ports | Application — the use-case package | `CreateOrderInputPort` |
 | Use-case implementations | Application — the use-case package | `CreateOrderUseCase` |
 | Commands, Queries, Results | Application — the use-case package | `CreateOrderCommand`, `CreateOrderResult` |
 | Output Ports | Application — the use-case package, or `application/shared` when reused | `OrderRepository`, `LoginProtectionStore` |
+| Use-case exceptions | Application — beside the use case, or `application/shared` when reused or declared by a port | `OrderNotFoundException` |
+| Exception handlers | `adapter/incoming` — one per context | `OrderApiExceptionHandler` |
 | REST controllers | `adapter/incoming` | `OrderRestController` |
 | Message listeners | `adapter/incoming` | `OrderCommandListener` |
 | Persistence adapters, ORM entities | `adapter/outgoing` | `JpaOrderRepository`, `OrderEntity` |
@@ -75,3 +78,5 @@ Shared kernel  | neutral metadata only | @Nullable, own annotations
 - [ ] Does the incoming adapter *use* the input port, and the outgoing adapter *implement* the output port?
 - [ ] Does infrastructure do nothing but wiring and configuration?
 - [ ] Can the domain and the application layer be tested without a framework?
+- [ ] Does each business rule refuse with its own named failure, and each argument guard with the platform's argument exception?
+- [ ] Does exactly one place per context turn a failure into a protocol answer?

@@ -70,6 +70,8 @@ The tactical markers, one to one. Java package `ddd.tactical`, .NET namespace `D
 | Domain gateway | `DomainGateway` | `IDomainGateway` |
 | Factory | `Factory` | `IFactory` |
 | Specification | `Specification<T>` (`isSatisfiedBy`) | `ISpecification<T>` (`IsSatisfiedBy`) |
+| Domain failure | `DomainException` (`ddd.tactical`) | `DomainException` (`Ddd.Tactical`) |
+| Use-case failure | `UseCaseException` (`application`) | `UseCaseException` (`Application`) |
 | Timestamps, ids | `java.time.Instant`, `java.util.UUID` | `DateTimeOffset`, `Guid` |
 | Absence | `Optional<T>` | nullable reference `T?` |
 
@@ -223,7 +225,9 @@ ships ASP.NET Core (default) and none. A Jakarta or Quarkus project therefore re
 |---|---|
 | `record` for values, commands, results, events | `record` (reference) for values and events, `readonly record struct` for ids, `sealed record` for commands/results |
 | `sealed interface` + `permits` | `abstract record` hierarchy or discriminated pattern matching; no `permits` |
-| Checked/unchecked exceptions | exceptions only; domain exceptions are unchecked either way |
+| Checked/unchecked exceptions | exceptions only; domain and use-case failures are unchecked either way |
+| Argument guard `IllegalArgumentException` | `ArgumentException`, `ArgumentNullException`, `ArgumentOutOfRangeException` |
+| `@RestControllerAdvice` + `ProblemDetail` | `IExceptionHandler` + `AddProblemDetails()` + `ProblemDetails` |
 | `Optional<T>` return | `T?` with nullable reference types enabled |
 | `final` class | `sealed` class |
 | `static` factory `Order.create(...)` | same, or `Order.Create(...)` |

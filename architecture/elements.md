@@ -11,6 +11,7 @@
 - **Domain Event** - Immutable record of domain occurrence (internal to bounded context)
 - **Specification** - Encapsulated business rule
 - **Factory** - Complex object creation logic
+- **Domain Exception** - A broken business rule, named in the ubiquitous language
 
 ### Strategic Building Blocks
 - **Bounded Context** - Explicit boundary for unified model
@@ -28,6 +29,7 @@ The application layer organizes business operations using a structured **Use Cas
 - **Input Port** - Interface defining use case contract (`extends UseCase<INPUT, OUTPUT>`)
 - **Command/Query** - Input model (Command for writes, Query for reads)
 - **Result** - Output model (standardized return type)
+- **Use-Case Exception** - A request the use case cannot serve, named by what it could not get hold of
 - **Output Port** - Interface for a capability the application needs but does not own (repositories, other contexts, external systems, publishers, the caller's identity)
 
 **Organization:**
@@ -272,6 +274,17 @@ public interface AggregateRoot<T extends AggregateRoot<T, ID>, ID extends Id>
         extends Entity<T, ID> {
     // Marker interface - identifies aggregate roots for all contexts
 }
+
+public abstract class DomainException extends RuntimeException {
+    // Base of every business-rule violation the model raises; carries no code and no status
+}
+```
+
+```java
+// dev.domaincentric.dca.buildingblocks.application — the failure channel of the layer above
+public abstract class UseCaseException extends RuntimeException {
+    // Base of every use-case failure the application layer reports to its callers
+}
 ```
 
 ```csharp
@@ -280,6 +293,10 @@ public interface IId { }
 public interface IEntity<TSelf, TId> : IEntity where TSelf : IEntity<TSelf, TId> where TId : IId { TId Id { get; } }
 public interface IAggregateRoot<TSelf, TId> : IEntity<TSelf, TId>, IAggregateRoot
     where TSelf : IAggregateRoot<TSelf, TId> where TId : IId { }
+public abstract class DomainException : Exception { }
+
+// DomainCentric.BuildingBlocks.Application
+public abstract class UseCaseException : Exception { }
 ```
 
 **The port hierarchy, as the library defines it — and how a context uses it:**
