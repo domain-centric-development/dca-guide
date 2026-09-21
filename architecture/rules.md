@@ -138,7 +138,8 @@ adapter behind it does. Nothing above this line depends on the answer.
 ### Event Consumption Rules
 - Event Consumer in adapter/incoming/messaging receives integration events
 - Anti-Corruption Layer (ACL) protects domain from external formats
-- ACL in adapter/incoming/messaging/acl converts events to domain commands
+- ACL converts events to domain commands; it belongs to the incoming adapter, and an own
+  `acl/` package there is a convention, not a rule
 - Event Consumer calls Input Port, never domain directly
 - Consuming bounded context maintains its own model
 - Eventual consistency between bounded contexts via events
