@@ -1699,7 +1699,7 @@ public class ExcludeGenerated implements ImportOption {
 ## Catalog kinds and retired identities (2026-09-09)
 
 Catalog entries distinguish enforced rules from informational diagnostics: LAY-001, STR-001, STR-010, MAP-013,
-and Java NAM-002. Test runners and generated catalogs report both counts separately. Informational entries do
+ERR-006, and Java NAM-002. Test runners and generated catalogs report both counts separately. Informational entries do
 not prove architectural correctness or runtime wiring. `kind()` / `Kind` is explicit metadata, independent of severity.
 
 Retired ids are never reused: MAP-003 delegates normalized-name collision handling to the context-map renderer;
