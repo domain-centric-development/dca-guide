@@ -121,6 +121,7 @@ DcaLayout.forBasePackage("com.company.project")
     .withOutgoingSubpackage("out")
     .withUseCaseSuffix("ApplicationService")
     .withControllerSuffix("Page")
+    .withTimestampTypes("com.company.platform.Timestamp")   // what a domain event stores its time in
     .allowingInDomain("org.jmolecules..")         // extra third-party packages tolerated in the domain
     .withFrameworkAnnotations(FrameworkAnnotations.jakarta());   // default: spring()
 ```
@@ -307,8 +308,11 @@ per bounded context is fine — pass all assemblies. Differences worth knowing:
   class, `[ApiController]`, page-model base, `TransactionScope`); `FrameworkTypes.None()` leaves every
   role empty, a `with` expression adjusts one. .NET has no injectable stereotype, so the **Java rules
   that check only a container stereotype** are listed as *not applicable*; six `DCA-NET`
-  rules exist only for .NET (synchronous domain, `Async` suffix on port methods, one `ExecuteAsync`,
-  records for values and ids).
+  rules exist only for .NET (synchronous domain, `Async` suffix on port methods, an awaitable and
+  cancellable use-case contract, records for values and ids, no persistence framework in the
+  application layer). Two of those six — the synchronous domain and the persistence-free application
+  layer — say something about architecture rather than about C#; Java has no twin for them yet, and
+  their `checks` texts say so.
 - **No baseline dial** (`frozen`): ArchUnitNET has no `FreezingArchRule`; lower such rules to a warning
   instead. The `dca-archunit.properties` keys are otherwise the same.
 
