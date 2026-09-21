@@ -177,7 +177,7 @@ com.company.project/
 ```
 
 ### Event Patterns
-- **Domain Events** - Internal to bounded context (in `domain/event/`)
+- **Domain Events** - Internal to bounded context, part of the model (`domain/model/` or `domain/event/`)
 - **Integration Events** - Cross-context DTOs (in `events/`)
 - **Event Mappers** - Convert domain events to integration events
 

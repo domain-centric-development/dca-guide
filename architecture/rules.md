@@ -57,7 +57,9 @@
 - Domain Events are immutable
 - Domain Events use past tense naming (e.g., OrderCreated, not CreateOrder)
 - Domain Events represent something that happened in the domain
-- Domain Events are defined in `{context}/domain/event/` package
+- Domain Events are part of the domain model: `{context}/domain/model/`, or an own
+  `{context}/domain/event/` segment once the model package grows. `DCA-ADV-002` requires the
+  domain layer, not a segment within it
 - Domain Events enable eventual consistency within bounded context
 - Domain Events emitted by aggregates during state changes
 - Domain Events published by use cases via DomainEventPublisher (Output Port)
@@ -102,8 +104,10 @@ flowchart TD
     DELIVER -- several --> BROKER["Message broker<br><i>Kafka, RabbitMQ, …</i>"]
 ```
 
-**Domain event** — `{context}/domain/event/`, named in the past tense (`OrderCreated`), may carry
-domain objects, carries a timestamp (`DCA-ADV-008`) and no schema version (`DCA-ADV-007`).
+**Domain event** — part of the domain model, so `{context}/domain/model/` or an own
+`{context}/domain/event/` segment, whichever keeps the package readable. Named in the past
+tense (`OrderCreated`), may carry domain objects, carries a timestamp (`DCA-ADV-008`) and no
+schema version (`DCA-ADV-007`).
 
 **Integration event** — the published contract. It lives in the context's `events/` segment
 (`DCA-STR-007`), carries the `Event` suffix and `@IntegrationEventType(name, version)`

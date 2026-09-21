@@ -129,7 +129,9 @@ The rules never name a framework. Where a rule needs one — the optional stereo
 annotations a domain model must not carry, the transactional annotation, the controller stereotypes,
 a module system's declarations — it reads a *role* from `FrameworkAnnotations`: `injectable`,
 `webController`, `restController`, `transactional`, `eventListener`, `moduleDeclaration`,
-`publishedInterface`, `persistenceEntity`, `injectionSite`, `persistenceMapping`. Each role is a list of fully qualified annotation names.
+`publishedInterface`, `persistenceEntity`, `injectionSite`, `persistenceMapping`, `transportStatus`,
+and the two the rules match as class dependencies rather than as annotations, `transactionApi` and
+`transactionManager`. Each role is a list of fully qualified names.
 Presets fill them: `spring()` (the default), `jakarta()` (CDI scopes, JAX-RS, JTA, JPA), `quarkus()`,
 `micronaut()`, and `none()` for a hand-wired application. Adjust a single role when your platform
 has its own annotation:
@@ -147,6 +149,31 @@ forbids it forbids all of them.
 
 An empty role is not an error: a rule that forbids it has nothing to forbid, a rule that requires it
 selects nothing, and the rules about transactions then count only the explicit `TransactionBoundary`.
+
+The same idea covers the building blocks themselves. The rules do not name `AggregateRoot`,
+`Repository` or `InputPort` as types either — they read a *role* from `DcaMarkers`, resolved by fully
+qualified name, and the default vocabulary is the one the building blocks ship. A code base that
+already has its own markers, or another library's, keeps them and says so once:
+
+```java
+DcaLayout.forBasePackage("com.company.project")
+    .withMarkers(
+        DcaMarkers.dca()
+            .named("company")
+            .withAggregateRoot("com.company.platform.ddd.AggregateRoot")
+            .withRepository("com.company.platform.ddd.Repository"));
+```
+
+It is then governed by the whole catalog, instead of switching off the rules that would have selected
+nothing. `withRole("aggregateRoot", "...")` sets a role by name where the code is generated rather
+than written. A role names exactly one type and must not be blank: an empty role would select nothing
+and report success, which is the failure mode these rules exist to prevent. Selection is by
+assignability, so the marker may be an interface or a base class. Two vocabularies at once are
+outside this — during a migration the role names the one the rules should follow. The strategic
+annotations (`@BoundedContext`, `@Upstream` and their siblings) are deliberately not roles, because
+the rules read their members and a type name carries none. The test report names the vocabulary in
+use — `building block markers: dca (library default)`, or the name and the roles that differ — so a
+wrong vocabulary is visible instead of silently selecting nothing.
 
 Usually you name no preset at all: `DcaLayout.forBasePackage` detects the framework on the test class
 path and picks the matching preset — Spring when it finds nothing — and the test report names the
