@@ -1,7 +1,7 @@
 # Domain-Centric Architecture
 *Synthesis of Domain-Driven Design, Hexagonal Architecture, and Clean Architecture*
 
-Written by **Christoph Bloemer** — [@chbloemer](https://github.com/chbloemer).
+Written by **Christoph Bloemer** (@chbloemer).
 
 **Domain-Centric Architecture** is an architectural approach that puts **domain logic at the center** and protects it from infrastructure concerns. It synthesizes proven patterns from Domain-Driven Design, Hexagonal Architecture, and Clean Architecture.
 
