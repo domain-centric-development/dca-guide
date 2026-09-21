@@ -120,6 +120,8 @@ Classic DDD (Evans, Vernon, Millett/Tune) places repository interfaces in the do
 
 The rejected alternative is worth naming: keeping the interface in the domain layer means the domain declares what it wants from persistence, which reads as independence but is not. The signature — what can be looked up, by what, returning what — is shaped by the use cases that call it, so the domain would be declaring a contract on someone else's behalf and would have to change whenever a use case's needs change.
 
+This is a deviation from DDD, not from the wider literature: Palermo's Onion Architecture (2008) puts repository interfaces in the first ring *around* the domain model, for the same reason. The `onion` rule set is named after that pattern.
+
 ### Repository vs. Store
 
 The literature knows only the Repository (one per aggregate root). DCA refines this with a second output-port type, the **Store**, for operational data without aggregate lifecycle (value objects, technical state) — see [Repository vs. Store](./architecture/repository-vs-store.md).
@@ -132,9 +134,40 @@ Vernon (*Implementing DDD*, "Rendering Domain Objects") offers the **Domain Payl
 
 The restriction is deliberately asymmetric. An incoming adapter reads and formats what a result delivers — including the own queries of a delivered value or read model — and operates no domain object; it obtains no domain service (`DCA-HEX-012`), constructs nothing and combines nothing into a new business fact. An outgoing adapter — a repository, a persistence mapper — necessarily constructs and reconstitutes domain objects while implementing an output port; it restores state and makes no new business decision.
 
+### A Failure Type per Layer
+
+The literature has no settled answer here. Evans and Vernon discuss invariant enforcement without naming an exception model, and Clean Architecture leaves error transport to the interface adapters. DCA fixes three layers: `DomainException` for a broken business rule of the model, `UseCaseException` for a request the use case cannot serve, and translation to a protocol answer in the incoming adapter. Neither base type carries a code or a status — which status a failure earns is the adapter's decision, and the same failure may earn different ones at different edges.
+
+Argument guards keep the platform's own exceptions. A null check or a range check is not a domain statement, and wrapping it in a domain type would make the vocabulary say less, not more.
+
+This is DCA's own, enforced by `DCA-ERR-001` … `DCA-ERR-006`. The word is `UseCaseException` in both stacks, because the .NET platform occupies `ApplicationException` and discourages deriving from it.
+
 ### Pragmatic Domain-Layer Dependencies
 
 "Framework-free domain" is enforced strictly for frameworks (Spring, JPA, Jackson, messaging), but compile-time-only conveniences without runtime coupling (Lombok, `commons-lang3`, JSpecify nullability annotations) are permitted. The boundary is behavioral coupling, not the import statement.
+
+## Relationship to jMolecules
+
+[jMolecules](https://github.com/xmolecules/jmolecules) is a set of technology-independent
+annotations and interfaces expressing DDD and architectural concepts in Java. Ten of its markers
+have a direct counterpart in DCA's building blocks: aggregate root, entity, value object,
+identifier, domain event, repository, factory, domain service, and the two event kinds.
+
+**A project that already uses jMolecules keeps it.** DCA's rules select building blocks through
+roles resolved by fully qualified name, so pointing the roles at `org.jmolecules.ddd.types.*` puts
+the whole rule catalog on an existing jMolecules model without migrating a single type. That is the
+same mechanism a project with its own hand-written markers uses.
+
+What DCA adds on top of the shared vocabulary is the part the rules need and jMolecules does not
+carry: a typed port hierarchy with a common root, the `Store` beside the `Repository`, the
+`TransactionBoundary` as an execution abstraction that is deliberately not a port, the layered
+failure types, strategic relationships that name a translation strategy and a rationale, a rendered
+context map — and one rule id that means the same thing in Java and in .NET. What jMolecules has and
+DCA does not is the tooling around the annotations: a ByteBuddy plugin, and Spring, JPA and Jackson
+integrations.
+
+The two developed independently and neither derives from the other. They are not alternatives to
+choose between: the markers are the cheap half, and DCA's value is in what checks them.
 
 ## General principles
 

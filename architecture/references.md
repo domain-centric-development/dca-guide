@@ -34,6 +34,12 @@ Domain-Centric Architecture synthesizes ideas from multiple foundational works a
   - Foundation for dependency inversion in Domain-Centric Architecture
 
 **Books:**
+- **[Hexagonal Architecture Explained](https://alistair.cockburn.us/hexagonal-architecture-explained/)** by Alistair Cockburn & Juan Manuel Garrido de Paz (2024)
+  - The authors' own current account, twenty years on: what a port is, how many an application has,
+    and why the adapter count is not the interesting number
+  - DCA's port granularity is narrower than the book's — see `architecture/elements.md`
+
+**Books:**
 - **[Get Your Hands Dirty on Clean Architecture](https://thombergs.gumroad.com/l/gyhdoca)** by Tom Hombergs (2019)
   - Practical implementation of Hexagonal Architecture
   - Detailed package structures and code examples
@@ -51,6 +57,33 @@ Domain-Centric Architecture synthesizes ideas from multiple foundational works a
 **Articles:**
 - **[The Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)** by Robert C. Martin (2012)
   - Original blog post introducing Clean Architecture circles
+
+## Onion Architecture
+
+The `onion` rule set (`DCA-ONI-*`) is named after this pattern. DCA keeps its central claim — all
+coupling points inward, the domain model at the centre — and does not encode the ring layout itself;
+`DCA-ONI-001/002/003` check the dependency direction and the domain's freedom from framework
+metadata. Palermo's first ring is also the published support for putting repository *interfaces*
+inside the application boundary rather than in infrastructure, which DCA otherwise presents only as
+a deviation from Evans and Vernon.
+
+**Articles:**
+- **[The Onion Architecture](https://jeffreypalermo.com/2008/07/the-onion-architecture-part-1/)** by Jeffrey Palermo (2008)
+  - Four-part series; coupling toward the centre, domain model innermost, infrastructure outermost
+  - ArchUnit's own `onionArchitecture()` implements these rings — deliberately not used here, see
+    `topics/archunit-governance.md`
+
+## Strategic Design and Subdomains
+
+**Books:**
+- **[Learning Domain-Driven Design](https://www.oreilly.com/library/view/learning-domain-driven-design/9781098100124/)** by Vlad Khononov (2021)
+  - Subdomain types (core, supporting, generic) and which patterns each one earns — the framing
+    behind DCA's pattern selection per subdomain
+  - ISBN: 978-1098100131
+
+- **[Patterns, Principles, and Practices of Domain-Driven Design](https://www.wiley.com/en-us/Patterns%2C+Principles%2C+and+Practices+of+Domain+Driven+Design-p-9781118714706)** by Scott Millett & Nick Tune (2015)
+  - Long-form treatment of context mapping and of aligning contexts with business capabilities
+  - ISBN: 978-1118714706
 
 ## Team Topologies
 

@@ -110,6 +110,16 @@ as well as a remote one. Both port kinds are declared in the application layer. 
 output ports; an incoming adapter may use one port too — the identity port, which translates request
 context into the project's language before the caller becomes a field of the Command or Query.
 
+**This is narrower than Cockburn's.** In *Hexagonal Architecture Explained* (Cockburn & Garrido de
+Paz, 2024) a port is a conversation the application has with the outside — an application may have
+very few, and a single driving port can carry every use case. DCA cuts one input port per use case
+instead, so that the application's offer is readable from the type list and a use case's contract
+has a name the ubiquitous language can hold. What DCA keeps is the part that carries the pattern:
+the direction of dependency, the adapter as the replaceable side, and the port owned by the
+application rather than by the technology. The cost is more interfaces; the gain is that
+`DCA-USE-017` can check that a class exposes nothing beyond its port, which a god-port makes
+meaningless.
+
 Not everything a use case calls is a port, and not every interface an adapter implements is one:
 
 - **Execution semantics** are not a port. A transaction boundary defines how several port calls run
