@@ -66,6 +66,23 @@ package com.company.project.checkout;
 | `@OpenHostService` | this adapter is a published API for other contexts | on the adapter class, not the package |
 | `@SharedKernel` | the package is the shared kernel | on `package-info.java` |
 
+**What `translation` is, and what it is not.** It states how *this* context protects its own
+model — `ANTI_CORRUPTION_LAYER` or `CONFORMIST` — and nothing else. Three questions are
+easily collapsed into one and must not be:
+
+| Question | Where it is answered | Values |
+|---|---|---|
+| How does the downstream protect its model? | `translation` on `@Upstream` | ACL, Conformist |
+| How does the upstream publish? | `@OpenHostService` on the published type, and the `api` / `events` packages themselves | Open Host Service, Published Language |
+| How do the two teams work together? | nowhere in the code — prose, or `rationale` | Customer/Supplier, Partnership, Separate Ways |
+
+One relationship normally answers all three at once: a context consumes another through
+its Open Host Service, translates it with an Anti-Corruption Layer, and the two teams work
+as Customer/Supplier. Writing "Customer/Supplier" where the declaration says
+`ANTI_CORRUPTION_LAYER` is not a contradiction but a category error, and it costs the
+mechanical check: `DCA-MAP-008` demands a translation site for every declared channel, and
+an organisational pattern names no site.
+
 Rules the declarations enable (see [ArchUnit Governance](../topics/archunit-governance.md)):
 
 - Every cross-context dependency in code must be covered by an `@Upstream`/`@Partnership` declaration
