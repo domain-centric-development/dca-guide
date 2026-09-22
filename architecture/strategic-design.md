@@ -66,6 +66,15 @@ dev.domaincentric.dca.buildingblocks            DomainCentric.BuildingBlocks
 The rest of this guide names the Java types; the .NET names follow the host language's convention
 (`I` prefix, attributes, `Async` suffix) — see [Language Mappings](../topics/language-mappings.md).
 
+**What belongs in it, and what does not.** A shared kernel is the code several contexts *share* —
+value objects every context has (`Money`, an id type), a port more than one context needs, markers a
+project defines for itself because the library has none. It is a coupling, so avoid it where you can:
+two contexts that each own their version stay independent. But the moment the alternative is copying
+the code and keeping the copies in sync by hand, the copy is the worse coupling — an invisible one —
+and the code belongs here. The same test decides for adapters and infrastructure: a shared outbox or
+event dispatcher belongs in the shared kernel when several contexts use it and none of them owns it.
+When one context is responsible for it, it stays in that context.
+
 **Structure of the application's shared kernel:**
 ```text
 sharedkernel/                      # @SharedKernel on package-info.java

@@ -17,7 +17,7 @@ Written by **Christoph Bloemer** (@chbloemer).
 
 4. **Bounded Contexts** - Large systems are partitioned into bounded contexts, each with its own ubiquitous language and model.
 
-5. **Event-Driven Integration** - Bounded contexts communicate asynchronously via domain events (internal) and integration events (external).
+5. **Decoupled Integration** - Bounded contexts stay independent: they communicate asynchronously, through integration events or another asynchronous channel, and synchronously only where the declared relationship says so — an open host service the downstream consumes and translates. Events are the means of decoupling, inside the model as domain events and across contexts as integration events, not an obligation on every interaction.
 
 6. **Progressive Complexity** - Start simple with flat structures, add complexity only when needed based on actual pain points.
 
@@ -34,15 +34,6 @@ flowchart TD
     A -- depends on --> P
     P -- depends on --> D
 ```
-
-### Key Benefits
-
-- ✅ **Business Logic Protection** - Domain isolated from technical concerns
-- ✅ **Testability** - Domain and application layers testable without infrastructure
-- ✅ **Flexibility** - Easy to swap frameworks, databases, or external services
-- ✅ **Team Scaling** - Bounded contexts enable independent teams
-- ✅ **Evolution** - Clear path from monolith to microservices
-- ✅ **Maintainability** - Clear separation of concerns and explicit boundaries
 
 ### When to Use
 

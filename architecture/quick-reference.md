@@ -35,7 +35,7 @@ Application    | domain, shared kernel
 Adapter (in)   | application, domain, shared kernel, external libraries
 Adapter (out)  | the same, plus global and own-module infrastructure
 Infrastructure | all of the above
-Shared kernel  | nothing — framework-independent
+Shared kernel  | its domain: nothing. Its adapters and infrastructure: the same as a context's
 ```
 
 Your own infrastructure layer is not the same thing as an external framework: every adapter may use
@@ -64,7 +64,8 @@ Domain         | never                 | pure Java / C# only
 Application    | minimal, or none      | possibly a stereotype on the use case
 Adapter        | yes                   | @RestController, @Entity
 Infrastructure | yes                   | @Configuration, @Bean
-Shared kernel  | neutral metadata only | @Nullable, own annotations
+Shared kernel  | its domain: never       | @Nullable, own annotations
+               | its adapters: yes       | the shared outbox, the transaction boundary
 ```
 
 ## Checklist for new code
