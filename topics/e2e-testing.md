@@ -441,11 +441,14 @@ deliberately has none.
 ### Time and permissions belong to the test
 
 A page that counts, polls or expires is tested with a **fake clock** that moves only when the test moves
-it, never with a sleep. Install it before the page loads, then move it: five minutes of waiting become
-one call, and the countdown ticks in the order it would in real time.
+it, never with a sleep. Install it before the page loads, at a fixed time, and pause it there — installed
+alone, the fake clock still runs at real speed, and a countdown test depends on how fast the machine is.
+Then move it: five minutes of waiting become one call, and the countdown ticks in the order it would in
+real time.
 
 ```java
-page.clock().install();
+page.clock().install(new Clock.InstallOptions().setTime("2026-01-05T08:00:00Z"));
+page.clock().pauseAt("2026-01-05T08:00:00Z");
 page.navigate(baseUrl + "/");
 page.locator("[data-test='start-button']").click();
 page.clock().runFor(3_000);
@@ -455,8 +458,21 @@ assertThat(page.locator("[data-test='remaining']")).hasText("04:57");
 A browser API whose answer belongs to the user — notifications, geolocation, the clipboard — is
 replaced before the page loads by a **stand-in** that records what it is asked and answers as the test
 decides. "The user allowed it" and "the user refused it" are then two tests, not a manual click, and a
-notification a headless browser would never show becomes observable. The application itself starts
-inside the test on a free port, so the suite needs nothing running first.
+notification a headless browser would never show becomes observable.
+
+### Where the application runs
+
+Two variants, and a project picks one and says which:
+
+- **Started by the test**, on a free port (`@SpringBootTest(webEnvironment = RANDOM_PORT)`, a
+  `WebApplicationFactory` hosting Kestrel). The suite needs nothing running first and runs the same on a
+  laptop, in CI and in an agent's shell. The default for a project whose pages need only the application.
+- **Started beside the test**, its address passed in (`e2e.baseUrl`, `E2E_BASE_URL`), as the base classes
+  above and the pipeline below do. For a system that needs a database or other services up first, and for
+  running the same suite against a staging environment.
+
+Mixing them by accident — a suite that starts the application and still reads a base URL — tests a
+different instance than the one it started.
 
 ---
 

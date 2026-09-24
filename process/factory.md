@@ -295,7 +295,9 @@ the build gate accepts a green test only if it is in that record. This is what c
 between "the criterion is met" and "something green exists".
 
 A command the project has not declared is **skipped and named**, never failed. A gate that fails on
-something nobody configured gets switched off, and then there is no governance at all.
+something nobody configured gets switched off, and then there is no governance at all. The one
+exception is one the project writes itself: a `required:` line in the same file names the checks
+that must hold, and a required check that is missing or ran nothing fails.
 
 The same commands belong on the **commit** as well. Tool configurations do not travel between
 editors, but every tool commits through version control, so a pre-commit check that runs the
@@ -310,8 +312,8 @@ build and test commands, one entry per test source set, the architecture suite, 
 the backlog, the glossary and the context map it keeps anyway. A stage asks the project; it never
 assumes a build tool, a test framework or a directory layout.
 
-The same file says whether the project drives a browser: `browser: playwright` when its end-user command
-runs a browser suite, `none` when it deliberately has none. A criterion only a browser can observe then
+The same file says whether the project drives a browser: the runner's name (`browser: playwright`) when
+its end-user command runs a browser suite, `none` when it deliberately has none. A criterion only a browser can observe then
 gets a browser test; with `none` the plan takes the next lower level and says what that cannot show.
 Unset, such a criterion stops the plan once for the stack decision rather than degrading every story.
 
@@ -452,17 +454,19 @@ nobody has a reason to bypass it, because a bypassed check guards nothing.
 
 ### Configuration, not knowledge
 
-**A command the project has not declared is skipped and named, never failed.** A gate that fails on
-something nobody configured gets switched off within a week, and then there is no governance at
-all. Skipping loudly keeps the gate installed and the gap visible.
+**A command the project has not declared is skipped and named, never failed** — unless the project
+itself declared it mandatory (`required:`). A gate that fails on something nobody configured gets
+switched off within a week, and then there is no governance at all. Skipping loudly keeps the gate
+installed and the gap visible.
 
 **The process knows no project.** Build commands, test source sets, runners, formatters, the
 reviewer for a perspective: all of it is the project's, in one file the project owns. A stage that
 would break in a system without your domain in it is not a stage, it is a local habit.
 
-**Model and effort are the tool's business, and a broken default must not stop the run.** Keep them
-out of the process, and let the environment supply them — otherwise the pipeline is unusable
-wherever a default provider happens to be unavailable.
+**Model and effort are the project's choice per tool, never the process's, and a broken default must
+not stop the run.** The process names no model; the project may bind one to a tool
+(`model.<tool>.<stage>`, above), and without that key the tool's own default applies — otherwise the
+pipeline is unusable wherever a default provider happens to be unavailable.
 
 ### Doctrine has to decide
 
