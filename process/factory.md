@@ -12,6 +12,7 @@ detail that may change without the process changing.
 
 ## Table of Contents
 
+- [The product scope](#the-product-scope)
 - [The backlog contract](#the-backlog-contract)
 - [Outcome events](#outcome-events)
 - [The stages and their hand-over files](#the-stages-and-their-hand-over-files)
@@ -20,6 +21,32 @@ detail that may change without the process changing.
 - [Escalation: the three answers a run may not give itself](#escalation-the-three-answers-a-run-may-not-give-itself)
 - [Building one: what actually holds](#building-one-what-actually-holds)
 - [Starting where you are](#starting-where-you-are)
+
+## The product scope
+
+Before the first story, one file describes the product: what is built and for whom, how each actor
+reaches it, how it works, how it looks, which qualities it needs, and what it will not do.
+
+| Heading | Says |
+|---|---|
+| What and for whom | the product in two or three sentences, and its actors |
+| Surfaces | pages, notifications, an API, a tool — and on which devices |
+| How it works | the main flow across epics; where state lives and what is persisted |
+| Look and feel | style direction, language, accessibility level, the styling approach |
+| Qualities | security and authorisation stance, privacy, performance, availability |
+| Not part of the product | what it deliberately will not do |
+
+It holds product decisions, never code design. "The client keeps the draft; the server stores what
+is submitted" belongs in it; an endpoint or a package does not. It is written with the person who
+decides what is built, one question per heading, and nothing in it is invented: a stage that reads
+an invented look builds it.
+
+Two failures make it the first artefact rather than an optional one. A product decision nobody took
+lands in the first story that needs it. There it surfaces as a plan that stops for a human, at the
+moment nobody is there to answer. And what no artefact states does not get built: a build stage
+that makes the smallest change that works builds a page without a stylesheet, correctly, when no
+look was stated. So the backlog skill writes no story while the product scope is missing, the
+stages plan and build within it, and a change that contradicts it is a review finding.
 
 ## The backlog contract
 
@@ -47,19 +74,41 @@ This is not bureaucracy. A stage that cannot read the intent invents one, and an
 indistinguishable from a stated one once it is in the code.
 
 A **story** names the bounded context it changes — a context the project's context map already
-carries — and states its acceptance criteria as observable end-user behaviour, one per line with a
-**key**:
+carries — and states its acceptance criteria as observable end-user behaviour. Each criterion is a
+scenario with a **key**, grouped under the business rule it illustrates:
 
 ```markdown
 ## Acceptance criteria
 
-- shows-empty-state: A reader who has recorded nothing sees an invitation to start, not an error.
-- lists-newest-first: The entries appear with the most recent first.
+### Rule: An entry nobody has recorded is not an error
+
+#### shows-empty-state
+- Given the reader has recorded nothing
+- When they open the list
+- Then they see an invitation to start
+- And no error is shown
+
+### Rule: The newest entry comes first
+
+#### lists-newest-first
+- Given entries recorded on Monday and on Tuesday
+- When the reader opens the list
+- Then Tuesday's entry is shown first
+
+## Out of scope
+
+- Archiving entries — a story of its own.
 
 ## Assumptions
 
 - open: Does an archived entry still count towards the list?
 ```
+
+A scenario has exactly one `When`. Two triggers are two scenarios, and every rule has at least one
+scenario. A check can count both, and does. Concrete values belong in the steps, because a value is
+what turns a range or a default into a question someone answers. A criterion may also be one line,
+`- <key>: <criterion>`; the scenario form is what makes the gaps visible. `## Out of scope` names
+what the story deliberately leaves to another, so no stage builds it on the way.
 
 The key is lowercase, hyphenated and names the behaviour. It is committed: the test stage records it
 next to the test that proves it, and the gate joins the two on it. A running number would point at
@@ -72,6 +121,31 @@ finding before the code exists, not after.
 
 A `status` field (`draft` / `approved` / `superseded`) carries the one thing no script can check: a
 human released this story for building. The most expensive mistake is well-built wrong code.
+
+**A story is planned when it is written, not when it runs.** A question the story leaves open stops
+the plan stage later, at the moment nobody is there to answer it. So before a story is released, the
+backlog skill goes through a fixed list of questions against the story, the product scope, the
+context map and the code the story touches, while the person who writes it is still there:
+
+- Does a trigger or an outcome need a way in the system does not have yet — a page, an endpoint, a
+  message — and who may use it? The question asks *whether*, never *which* one to build.
+- Does the story rely on an external system the context map does not carry? Then it is a scoping
+  question first, and the system's contract belongs on the map, not in every story.
+- For every input: the format, the allowed range, what happens at the boundaries.
+- For every default: one stated value.
+- For every dependency: what the user sees when it fails, and after how long a slow answer counts
+  as a failure.
+- For every state a rule names: each transition, including the case where two sources of the same
+  value meet.
+- Which behaviour the system shows today will look different afterwards?
+- Does a scenario already hold before the build? "Nothing is shown" is often true today, because
+  the element does not exist yet. Such a scenario is a guarantee for the existing tests, not a
+  criterion, and a gate refuses a criterion that is green before the build.
+- Can a user probe or exhaust a rule by repeating it?
+- Does every rule have a scenario, and does every scenario have one cause?
+
+What the product scope already answers is not asked again. What stays open becomes an `open:`
+assumption, and a story whose open assumption fixes an observable result stays a draft.
 
 ## Outcome events
 
@@ -112,12 +186,20 @@ without changing the result.
 
 | Stage | Reads | Writes |
 |---|---|---|
-| plan | the story, the glossary and context map if present | `tasks/<story>/plan.md` |
-| test | the story, `plan.md` | `tasks/<story>/tests.md` — with the criterion-to-test table |
-| build | the story, `plan.md`, `tests.md` | `tasks/<story>/build.md` |
-| tidy | the story, `plan.md`, `build.md`, the green code | `tasks/<story>/tidy.md` |
-| judge | the story, all predecessors, the diff | `tasks/<story>/judge.md` — with a verdict |
-| document | the story, all predecessors, the project's documents | `tasks/<story>/document.md` |
+| plan | the story, the product scope, the glossary and context map if present | `tasks/<story>/plan.md` |
+| test | the story, `plan.md` and the files it names | `tasks/<story>/tests.md` — with the criterion-to-test table |
+| build | the story, `plan.md`, `tests.md` and the files they name | `tasks/<story>/build.md` |
+| tidy | the story, `plan.md`, `build.md`, the files the story changed | `tasks/<story>/tidy.md` |
+| judge | the story, all predecessors, the story's diff, the product scope | `tasks/<story>/judge.md` — with a verdict |
+| document | the story, all predecessors, the story's diff, the project's documents | `tasks/<story>/document.md` |
+
+**What a story changed is recorded, not reconstructed.** Around every stage the pipeline records
+which files changed, and after it the whole story's diff. The diff is taken against a snapshot of the
+working tree at the story's first stage, so a repository without a single commit gets one too.
+Every hand-over names its files: what the plan expects to change and what a later stage should read,
+the tests written, and the files build and tidy touched, which a gate checks against what actually
+changed. The next stage opens those files first. A stage that has to rebuild the diff itself
+explores the repository, and that exploration is paid again on every turn of the stage.
 
 The **plan** names the elements that change — aggregates, value objects, use cases with their ports,
 adapters — in the project's own vocabulary, and picks the shape of the end-user test per criterion
@@ -218,6 +300,14 @@ Nothing above knows how your project builds. That knowledge lives in one file th
 build and test commands, one entry per test source set, the architecture suite, the formatter — plus
 the backlog, the glossary and the context map it keeps anyway. A stage asks the project; it never
 assumes a build tool, a test framework or a directory layout.
+
+The same file may name the model each tool runs a stage on, as a key bound to the tool
+(`model.<tool>.<stage>`). It is bound to the tool because a model's name means nothing to another
+tool: an unbound key in a shared profile breaks a colleague's run with a different tool at the first
+stage it names. The process itself names no model; which stages can run on a cheaper one without
+the review finding more is the project's to measure. A stage run in its own process sees only the
+project — its skills, its settings, the craft the profile names — and not the plugins or servers of
+whoever starts it, so two people get the same pipeline.
 
 Two consequences. Adding a capability (a formatter, a second test source set, another review
 perspective) is a line in that file, not an edit to a stage. And a stage that would break in a
