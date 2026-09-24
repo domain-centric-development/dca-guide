@@ -193,6 +193,15 @@ without changing the result.
 | judge | the story, all predecessors, the story's diff, the product scope | `tasks/<story>/judge.md` — with a verdict |
 | document | the story, all predecessors, the story's diff, the project's documents | `tasks/<story>/document.md` |
 
+**The builder stages may share one context, the judge never.** Plan, test, build and tidy can run one
+after another in a single context, each still writing its own file and each still gated. That costs
+less, because each stage builds on what the one before read instead of reading it again. What it gives
+up is that the build stage knows how the tests were written. The gate compensates for that: it binds
+the red proof to the tests as they were seen failing. The judge always starts fresh, because a review
+by the context that wrote the code is the self-assessment the gates exist to replace. Sharing is a
+choice per run, not the default; a check outside the shared context confirms that the red proof exists
+and runs the build and tidy gates again.
+
 **What a story changed is recorded, not reconstructed.** Around every stage the pipeline records
 which files changed, and after it the whole story's diff. The diff is taken against a snapshot of the
 working tree at the story's first stage, so a repository without a single commit gets one too.
