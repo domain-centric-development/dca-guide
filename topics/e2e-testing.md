@@ -431,7 +431,32 @@ nobody reviewed. Test at the highest level that exists, say so, and let the miss
 decided as its own piece of work.
 
 Adding a test framework the project does not have is a stack decision, never part of delivering a
-story.
+story. That is exactly why a project that shows pages takes it **before its first story**. Otherwise
+every story about a page falls back to reading the page's markup or script as text. Such a test proves
+the wording, not what the browser does: that a countdown ticks, that a click hides a hint, that a
+notification appears. A fallback taken story by story is a decision nobody took, and it grows with
+every story. So the project sets up its browser runner once, when it is created, or records that it
+deliberately has none.
+
+### Time and permissions belong to the test
+
+A page that counts, polls or expires is tested with a **fake clock** that moves only when the test moves
+it, never with a sleep. Install it before the page loads, then move it: five minutes of waiting become
+one call, and the countdown ticks in the order it would in real time.
+
+```java
+page.clock().install();
+page.navigate(baseUrl + "/");
+page.locator("[data-test='start-button']").click();
+page.clock().runFor(3_000);
+assertThat(page.locator("[data-test='remaining']")).hasText("04:57");
+```
+
+A browser API whose answer belongs to the user — notifications, geolocation, the clipboard — is
+replaced before the page loads by a **stand-in** that records what it is asked and answers as the test
+decides. "The user allowed it" and "the user refused it" are then two tests, not a manual click, and a
+notification a headless browser would never show becomes observable. The application itself starts
+inside the test on a free port, so the suite needs nothing running first.
 
 ---
 
