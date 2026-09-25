@@ -300,10 +300,13 @@ The **tidy** stage is the refactor half of red–green–refactor, which the bui
 leaves undone. It works only inside the story's footprint, changes no test and changes no behaviour.
 A tidy stage that changes nothing and says why is finished, not skipped.
 
-The **judge** stage reviews the change from three perspectives that always run — the model, the
-boundaries, the craft — with a file and a line behind every finding, and returns one of three
-verdicts (below). A project may add further perspectives; it cannot switch the three off, because a
-review without the boundaries is not a review of a domain-centric architecture.
+The **judge** stage reviews the change from three perspectives that always run — Domain-Driven
+Design (the model and its language), hexagonal architecture (the boundaries and the direction of the
+dependencies) and clean code (the craft) — with a file and a line behind every finding, and returns
+one of three verdicts (below). The three are the outside view and name no method. A project adds
+further perspectives, the most common one being the conformance to its own architecture — for a
+domain-centric one, its conventions, building blocks and rules; it cannot switch the three off,
+because a review without the boundaries is not a review of a domain-centric architecture.
 
 The **document** stage brings the glossary, the context map and the project's reader documentation
 in line with what the story changed, and it carries the same duty of proof as the code: every path,
