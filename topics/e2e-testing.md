@@ -438,6 +438,29 @@ notification appears. A fallback taken story by story is a decision nobody took,
 every story. So the project sets up its browser runner once, when it is created, or records that it
 deliberately has none.
 
+### Adding a browser runner to an existing project
+
+A project that shows pages and has no browser runner gets one as its own step, before the next story
+that needs it — never inside that story:
+
+1. **Pick the runner the stack already speaks.** The one the project's build can run without a second
+   toolchain: a library in the test dependencies for a JVM or .NET build, a package in the project's
+   own package manager for a JavaScript build. Pin its version, and install the browser builds that
+   release expects.
+2. **Give the browser tests their own place and command.** A source set or test project of their own,
+   and one command that runs them; they are slower than the unit tests and may need the application
+   running, so they are not mixed into the fast suite. Decide where the application runs — started by
+   the test or beside it (below) — and say which.
+3. **Write one smoke test first.** It opens the start page and asserts its title through a stable
+   `data-test` selector — nothing about behaviour yet. The Page Object and the base class it needs
+   are the ones every later test uses.
+4. **Show that it can fail.** Empty the start page's title, run the command, see the smoke test go
+   red, put the title back, see it green. A browser test that has never been red may be testing
+   nothing — a wrong URL, a page that never loaded, a selector that matches an error page.
+5. **Record it where the next change is planned.** The command and the runner's name go where the
+   project keeps its build facts, so a plan takes browser tests as the shape for a page instead of
+   falling back to reading markup as text.
+
 ### Time and permissions belong to the test
 
 A page that counts, polls or expires is tested with a **fake clock** that moves only when the test moves

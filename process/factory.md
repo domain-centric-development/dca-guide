@@ -12,7 +12,8 @@ detail that may change without the process changing.
 
 ## Table of Contents
 
-- [The product scope](#the-product-scope)
+- [Three parts](#three-parts)
+- [The project description](#the-project-description)
 - [The backlog contract](#the-backlog-contract)
 - [Outcome events](#outcome-events)
 - [The stages and their hand-over files](#the-stages-and-their-hand-over-files)
@@ -22,10 +23,45 @@ detail that may change without the process changing.
 - [Building one: what actually holds](#building-one-what-actually-holds)
 - [Starting where you are](#starting-where-you-are)
 
-## The product scope
+## Three parts
 
-Before the first story, one file describes the product: what is built and for whom, how each actor
-reaches it, how it works, how it looks, which qualities it needs, and what it will not do.
+A factory that delivers stories has three parts, and each lives in its own place:
+
+- a **project description** — what is to be built, written by people before the code;
+- a **backlog** of epics and stories, written by people, each story small enough for one run;
+- a **runner** that works the backlog off, stage by stage, with a check between the stages.
+
+```text
+project/                   what is to be built (people write it)
+  product.md               what, for whom, surfaces, qualities, what it is not
+  tech.md                  stack, frontend approach, persistence, runtime, integrations, version policy
+  domain.md                the designed cut: contexts, subdomain types, relationships and why
+  backlog/
+.agents/factory/           how it is worked off (the machine: profile, checks, runner)
+tasks/<story>/             the stages' hand-overs
+docs/                      what exists and why — written after the code, some of it generated
+```
+
+`project/` holds **intent**: written before the code, and read by every stage as input. `docs/` holds
+**what exists and why** — architecture documentation, decision records, maps generated from the
+code, user and operations guides — written after the code, by people and by the stage that documents
+a story, which writes only what the code confirms. The rule of thumb: an intention that need not be
+built yet goes to `project/`; a statement the code could show goes to `docs/`. Glossaries stay beside
+the code of their context. Where the two places meet — the designed map against a map generated from
+the code — a difference is a finding, not a duplicate: a context planned and not built yet, or built
+without having been designed.
+
+Setting the factory up is one step that does only what is missing, in any order relative to the
+code: the description before the code, the code before the description, or an existing project that
+has both and gets the factory added. A second run finds everything in place and writes nothing.
+
+## The project description
+
+Before the first story, two files describe what is to be built and a third, optional one describes
+the designed cut. They are written with the person who decides, one question per heading, and nothing
+in them is invented: a stage that reads an invented look builds it.
+
+**The product** — `product.md`:
 
 | Heading | Says |
 |---|---|
@@ -36,17 +72,41 @@ reaches it, how it works, how it looks, which qualities it needs, and what it wi
 | Qualities | security and authorisation stance, privacy, performance, availability |
 | Not part of the product | what it deliberately will not do |
 
-It holds product decisions, never code design. "The client keeps the draft; the server stores what
-is submitted" belongs in it; an endpoint or a package does not. It is written with the person who
-decides what is built, one question per heading, and nothing in it is invented: a stage that reads
-an invented look builds it.
+**The technical decisions** — `tech.md`:
 
-Two failures make it the first artefact rather than an optional one. A product decision nobody took
-lands in the first story that needs it. There it surfaces as a plan that stops for a human, at the
-moment nobody is there to answer. And what no artefact states does not get built: a build stage
+| Heading | Says |
+|---|---|
+| Stack | language, framework and build tool |
+| Frontend approach | server-rendered pages, a client application or none — and what that excludes |
+| Persistence | where state is kept and how, and what the product does not use |
+| Runtime | where and how it runs |
+| Integrations | the external systems it talks to |
+| Version policy | how dependencies are chosen and kept current |
+
+**The designed domain** — `domain.md`:
+
+| Part | Says |
+|---|---|
+| Bounded contexts | each context, its responsibility and its subdomain type (core, supporting, generic) |
+| Relationships | upstream and downstream, the pattern, where the translation happens, and the reason |
+
+They hold decisions, never code design. "The client keeps the draft; the server stores what is
+submitted" belongs in the product; "server-rendered pages, no client framework" in the technical
+decisions; an endpoint or a package in neither.
+
+Two failures make the description the first artefact rather than an optional one. A decision nobody
+took lands in the first story that needs it. There it surfaces as a plan that stops for a human, at
+the moment nobody is there to answer. And what no artefact states does not get built: a build stage
 that makes the smallest change that works builds a page without a stylesheet, correctly, when no
-look was stated. So the backlog skill writes no story while the product scope is missing, the
-stages plan and build within it, and a change that contradicts it is a review finding.
+look was stated. So the backlog skill writes no story while the product or the technical description
+is missing, and it checks each new story against all three before the story is released: a context
+not on the designed map, an actor or a surface the product does not have, a need the technical
+decisions exclude — each is a question asked while the person is there. The stages plan and build
+within the description, and a change that contradicts it is a review finding.
+
+The project instructions name the three files and bind every implementation to them — a stage of the
+factory, and a person developing by hand in a session alike: read them first, and treat a
+contradiction as a finding, not as something to fix in the code. A session has what a stage has.
 
 ## The backlog contract
 
@@ -54,7 +114,7 @@ The backlog is markdown with front matter, one file per item, readable and revie
 tooling — no database, and no JSON as the source of truth.
 
 ```text
-backlog/
+project/backlog/
   <epic>/
     epic.md          the epic
     <story>.md       one story
@@ -73,8 +133,8 @@ refused before any planning starts:
 This is not bureaucracy. A stage that cannot read the intent invents one, and an invented intent is
 indistinguishable from a stated one once it is in the code.
 
-A **story** names the bounded context it changes — a context the project's context map already
-carries — and states its acceptance criteria as observable end-user behaviour. Each criterion is a
+A **story** names the bounded context it changes — a context the designed map already carries,
+built or not yet — and states its acceptance criteria as observable end-user behaviour. Each criterion is a
 scenario with a **key**, grouped under the business rule it illustrates:
 
 ```markdown
@@ -124,13 +184,16 @@ human released this story for building. The most expensive mistake is well-built
 
 **A story is planned when it is written, not when it runs.** A question the story leaves open stops
 the plan stage later, at the moment nobody is there to answer it. So before a story is released, the
-backlog skill goes through a fixed list of questions against the story, the product scope, the
-context map and the code the story touches, while the person who writes it is still there:
+backlog skill goes through a fixed list of questions against the story, the project description and
+the code the story touches, while the person who writes it is still there:
 
 - Does a trigger or an outcome need a way in the system does not have yet — a page, an endpoint, a
   message — and who may use it? The question asks *whether*, never *which* one to build.
-- Does the story rely on an external system the context map does not carry? Then it is a scoping
-  question first, and the system's contract belongs on the map, not in every story.
+- Is the story's context on the designed map, and does it need nothing the technical decisions
+  exclude — a second persistence, a client framework on server-rendered pages?
+- Does the story rely on an external system neither the designed map nor the technical decisions
+  carry? Then it is a question about the description first, and the system's contract belongs
+  there, not in every story.
 - For every input: the format, the allowed range, what happens at the boundaries.
 - For every default: one stated value.
 - For every dependency: what the user sees when it fails, and after how long a slow answer counts
@@ -144,7 +207,7 @@ context map and the code the story touches, while the person who writes it is st
 - Can a user probe or exhaust a rule by repeating it?
 - Does every rule have a scenario, and does every scenario have one cause?
 
-What the product scope already answers is not asked again. What stays open becomes an `open:`
+What the project description already answers is not asked again. What stays open becomes an `open:`
 assumption, and a story whose open assumption fixes an observable result stays a draft.
 
 ## Outcome events
@@ -186,11 +249,11 @@ without changing the result.
 
 | Stage | Reads | Writes |
 |---|---|---|
-| plan | the story, the product scope, the glossary and context map if present | `tasks/<story>/plan.md` |
+| plan | the story, the project description, the glossary and the generated context map if present | `tasks/<story>/plan.md` |
 | test | the story, `plan.md` and the files it names | `tasks/<story>/tests.md` — with the criterion-to-test table |
 | build | the story, `plan.md`, `tests.md` and the files they name | `tasks/<story>/build.md` |
 | tidy | the story, `plan.md`, `build.md`, the files the story changed | `tasks/<story>/tidy.md` |
-| judge | the story, all predecessors, the story's diff, the product scope | `tasks/<story>/judge.md` — with a verdict |
+| judge | the story, all predecessors, the story's diff, the product and the technical description | `tasks/<story>/judge.md` — with a verdict |
 | document | the story, all predecessors, the story's diff, the project's documents | `tasks/<story>/document.md` |
 
 **The builder stages may share one context, the judge never.** Plan, test, build and tidy can run one
@@ -310,7 +373,11 @@ then it guards nothing.
 Nothing above knows how your project builds. That knowledge lives in one file the project owns —
 build and test commands, one entry per test source set, the architecture suite, the formatter — plus
 the backlog, the glossary and the context map it keeps anyway. A stage asks the project; it never
-assumes a build tool, a test framework or a directory layout.
+assumes a build tool, a test framework or a directory layout. The file can be prefilled by
+detection — one small description per build tool, browser runner or formatter the setup recognises —
+and a person corrects it where detection is wrong; detection is never consulted during a run, so the
+file stays the one contract. The formatter appears twice: as the check the gate runs, and as the
+command that corrects the formatting, which the stages that write code run before they finish.
 
 The same file says whether the project drives a browser: the runner's name (`browser: playwright`) when
 its end-user command runs a browser suite, `none` when it deliberately has none. A criterion only a browser can observe then
@@ -345,8 +412,9 @@ Two more questions belong to a human by construction, and a run that meets one o
 says so instead of answering it:
 
 - **A new bounded context, or a new relationship between contexts.** That is a decision about
-  language boundaries and ownership, recorded as a decision and reflected on the context map — never
-  smuggled in by a story.
+  language boundaries and ownership, recorded as a decision and reflected on the designed map — never
+  smuggled in by a story. A context that is designed and not built yet is no such question: the
+  story plans it as new.
 - **A surface the story's actor does not have.** If the criteria can only be observed through a page
   or an endpoint the context does not offer, adding one is a product decision, and where the surface
   needs a guard it is an authorisation decision as well. A guard nobody decided is a guard no test
@@ -502,6 +570,15 @@ exercised by burning real runs.
 fine. A report that hides the difference invites exactly the trust it has not earned.
 
 ## Starting where you are
+
+**From zero, in a fixed order.** A project that starts empty gets its description first — what is to
+be built, the technical decisions, the designed cut — and its skeleton second, from the stack's own
+generator, so the versions are the generator's and not anyone's memory. Then the repository, the
+architecture's building blocks and rule suite, a formatter run once over everything, and a browser
+runner wherever the product has pages — each before the first story, because a story that has to set
+one of them up in passing takes a stack decision nobody asked for. The proof is that the application
+starts, every suite is green, and the browser smoke test goes red when the start page's title is
+emptied.
 
 **Empty means green.** In a project with no backlog, no glossary and no context map, nothing above
 fails on absence: each stage says which file to create, and the gate reports what it skipped and
