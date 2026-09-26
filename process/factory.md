@@ -20,6 +20,7 @@ detail that may change without the process changing.
 - [Gates](#gates)
 - [What the project declares](#what-the-project-declares)
 - [Escalation: the three answers a run may not give itself](#escalation-the-three-answers-a-run-may-not-give-itself)
+- [Journeys: a guard over what is delivered](#journeys-a-guard-over-what-is-delivered)
 - [Acceptance: a human looks before it counts](#acceptance-a-human-looks-before-it-counts)
 - [Building one: what actually holds](#building-one-what-actually-holds)
 - [Starting where you are](#starting-where-you-are)
@@ -143,7 +144,7 @@ scenario with a **key**, grouped under the business rule it illustrates:
 
 ### Rule: An entry nobody has recorded is not an error
 
-#### shows-empty-state
+#### shows-empty-state (happy path)
 - Given the reader has recorded nothing
 - When they open the list
 - Then they see an invitation to start
@@ -164,6 +165,10 @@ scenario with a **key**, grouped under the business rule it illustrates:
 
 - open: Does an archived entry still count towards the list?
 ```
+
+A scenario may carry a `Title:` line under its heading; without one, its title is the key in words. The
+scenario's end-to-end test carries that title verbatim as its display name, and the gate checks it: two
+implementations of one story then name the test alike, and a test report names the scenario it proves.
 
 A scenario has exactly one `When`. Two triggers are two scenarios, and every rule has at least one
 scenario. A check can count both, and does. Concrete values belong in the steps, because a value is
@@ -275,12 +280,15 @@ changed. The next stage opens those files first. A stage that has to rebuild the
 explores the repository, and that exploration is paid again on every turn of the stage.
 
 The **plan** names the elements that change — aggregates, value objects, use cases with their ports,
-adapters — in the project's own vocabulary, and picks the shape of the end-user test per criterion
-from what the project can run *today*. It backs every statement about the code with a file and a
+adapters — in the project's own vocabulary, and gives every criterion its test level from what the
+project can run *today*: the one scenario the story marks as its **happy path** end to end, every other
+scenario integrated through the wired application, `browser-only` with a reason where only a browser
+observes the outcome ([Test Levels](../topics/testing-levels.md)). It backs every statement about the code with a file and a
 line. It writes no code.
 
-The **test** stage writes one end-user test per acceptance criterion, plus unit tests for the
-invariants the story introduces, and records the mapping:
+The **test** stage writes one test per acceptance criterion at the level the plan gave it — an external
+system stubbed at the protocol, never mocked at the port — plus unit tests for the invariants the story
+introduces, and records the mapping:
 
 ```markdown
 | criterion | test |
@@ -321,8 +329,8 @@ it either finds the evidence or it does not.
 
 | Before | The gate checks |
 |---|---|
-| plan | the epic is complete; the story is well-formed, released, and its context is on the map |
-| after test | every criterion is mapped to a test; the test exists in the sources; the test sources compile; **every mapped test is red** |
+| plan | the epic is complete; the story is well-formed, released, marks exactly one happy path, and its context is on the map |
+| after test | every criterion is mapped to a test; the test exists in the sources; the test sources compile; **every mapped test is red**; an end-user test belongs to the happy path or a `browser-only` scenario |
 | after build | every mapped test is green **and was recorded red by the test stage**; the architecture suite passes; the formatter passes |
 | after tidy | the same checks again — the stage's whole claim is that nothing changed |
 | after document | every path and identifier the stage claims exists; every glossary row says how it was checked |
@@ -433,6 +441,14 @@ The stage that asked runs again with the answer in front of it, and a check that
 once the stage has taken it up. Three things follow: the question survives the session, a second
 person can answer it without the first one's transcript, and nobody can mistake a suggestion for a
 decision.
+
+## Journeys: a guard over what is delivered
+
+An epic may name its **journey** — the flow through its stories that must never break, walked to its
+outcome event. The journey test is a backlog item of its own (`kind: journey`) that depends on the stories
+building its steps. It becomes ready when they are delivered and runs plan, test, judge and document —
+there is nothing to build. Its gate expects the test **green**, the inverse of a story: every step exists
+when it is written, so it is a regression guard, not a criterion.
 
 ## Acceptance: a human looks before it counts
 
@@ -624,3 +640,13 @@ why. The first story is written, and the process works from there.
 migrated wholesale and existing tests are not renamed: rewriting finished work would invent intents,
 goals and outcome events nobody ever stated, and every one of those epics would then fail the gate
 for good reason. The gate only ever looks at the story it is called with.
+
+**Adopt, do not migrate.** Migrating old tickets invents intent nobody stated, and stays forbidden.
+Adopting describes what the system does today, with evidence, and is how a brownfield project enters the
+backlog. A story with `status: adopted` is never built: its scenarios are mapped to tests that exist and
+are green, a test the adoption has to write itself is shown to work by a break — a minimal change to the
+production code, applied to a scratch copy, that turns exactly this test red — and a fresh judge confirms
+that each test asserts its scenario. Then the story counts as delivered, and a new story can depend on it.
+Two limits hold: green is weaker than red-then-green, which is why the judge reads every mapped test and a
+written test needs its break; and adoption is incremental — a project adopts the part the next new story
+touches, not the whole system in one run.

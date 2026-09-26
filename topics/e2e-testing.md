@@ -23,6 +23,8 @@ Practical guide for browser-based end-to-end testing using Playwright with data-
 
 E2E tests verify the complete user journey through your application. In domain-centric architecture, E2E tests sit at the top of the testing pyramid—few in number but critical for validating full-stack behavior.
 
+Which scenario of a story gets an E2E test — its happy path, and a scenario only a browser can observe — is set out in [Test Levels](testing-levels.md); this guide covers how the browser test itself is written.
+
 **When to use E2E tests:**
 - Critical user flows (checkout, authentication)
 - Cross-bounded context interactions

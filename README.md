@@ -86,6 +86,7 @@ Deeper topics, each self-contained:
 | [Deployment Patterns](./topics/deployment-patterns.md) | Self-Contained Systems, service decomposition, going to production |
 | [Team Topologies](./topics/team-topologies.md) | Aligning teams with bounded contexts |
 | [Domain Services with Data Dependencies](./topics/domain-services-with-data-dependencies.md) | A domain service that needs data it cannot reach |
+| [Test Levels](./topics/testing-levels.md) | Unit, integration, e2e: the happy path end to end, the rest integrated; smoke, happy-path and journey tests |
 | [E2E Testing](./topics/e2e-testing.md) | Browser tests with the Page Object pattern |
 | [JWT Implementation](./topics/jwt-implementation-guide.md) | Authentication across contexts |
 
