@@ -530,6 +530,17 @@ one part of the run nobody can audit.
 file the stage is told to read. A stage that repeats blind reproduces exactly what was rejected,
 and the loop burns rounds on it.
 
+**A round belongs to the story, not to the machine.** A refusal whose cause no stage can change — a
+build tool missing on the gate's path — is named as the environment's and stops the run once,
+without counting. Counted as a round, it sends a stage three times against a wall it cannot move,
+and the story stops as if it had failed.
+
+**Resume where the files say, and check them before a stage reads them.** A run started on one story
+begins at the state its files record, not at the first stage by default: a delivered story runs
+nothing, an accepted one only its last gate. Where the file of the stage it resumes at exists, the
+gate checks it on today's tree first. A report from a round the machine lost otherwise becomes the
+next stage's instruction, and the stage fixes what is no longer wrong.
+
 **An answer that exists only in a reply is lost.** A scoping decision, an assumption the domain
 expert settled, a reason for a deviation: if it is not written where the next run will look, the
 same question comes back in a month with a different answer.
