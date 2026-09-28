@@ -562,7 +562,9 @@ its staleness visible and say when it needs renewing.
 
 **A copy that must exist gets a freshness statement, not trust.** Naming a knowledge source means
 vouching that it is current — a citation from a stale catalog makes a wrong rule id look verified.
-Whoever reads it cannot tell; whoever wrote it must.
+Whoever reads it cannot tell; whoever wrote it must. The method's own catalog, shipped with the
+release that installs its rules, is the one source that is current by construction — a project set
+up with the method names it, and every stage cites it; one that is not has nothing to cite.
 
 **Instructions have a size budget.** Tools stop reading project documents at a limit and truncate
 without a word, so an instruction past that point does not exist for them while its author
