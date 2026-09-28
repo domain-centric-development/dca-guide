@@ -436,7 +436,8 @@ says so instead of answering it:
 of its own — the story it blocks, the stage that asked, the options it sees, its recommendation —
 never into a chat and never as an answer. Whoever decides writes the answer into that record with
 their name and the time; a recommendation, a default, a timeout or an unsigned draft is not one.
-The stage that asked runs again with the answer in front of it, and a check that reads the record
+The stage that asked runs again with the answer in front of it — or, where the answer names another
+(an answer that changes a test goes back to the test stage), that one — and a check that reads the record
 — not the stage's word — refuses the story while the question is open and marks the record applied
 once the stage has taken it up. Three things follow: the question survives the session, a second
 person can answer it without the first one's transcript, and nobody can mistake a suggestion for a
@@ -540,6 +541,13 @@ begins at the state its files record, not at the first stage by default: a deliv
 nothing, an accepted one only its last gate. Where the file of the stage it resumes at exists, the
 gate checks it on today's tree first. A report from a round the machine lost otherwise becomes the
 next stage's instruction, and the stage fixes what is no longer wrong.
+
+**A stage that runs again ends the pass after it.** A re-plan, a build after the judge asked for
+changes: the files the later stages wrote describe work that came before, and a story resumed on
+them skips every stage in between. They stay as the record; they no longer say where the story
+stands. The last gate delivers only a story whose stages all ran, in order, in this pass, over a
+judge's pass and the story as it was planned — a document written for an earlier pass delivers
+nothing.
 
 **An answer that exists only in a reply is lost.** A scoping decision, an assumption the domain
 expert settled, a reason for a deviation: if it is not written where the next run will look, the
