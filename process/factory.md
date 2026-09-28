@@ -34,15 +34,24 @@ A factory that delivers stories has three parts, and each lives in its own place
 - a **runner** that works the backlog off, stage by stage, with a check between the stages.
 
 ```text
+dca-factory.profile.yaml   the stack profile — the person's, committed
 project/                   what is to be built (people write it)
   product.md               what, for whom, surfaces, qualities, what it is not
   tech.md                  stack, frontend approach, persistence, runtime, integrations, version policy
   domain.md                the designed cut: contexts, subdomain types, relationships and why
-  backlog/
-.agents/factory/           how it is worked off (the machine: profile, checks, runner)
-tasks/<story>/             the stages' hand-overs
+  epics/<epic>/            the epic, its stories, and beside each story its decisions
+.agents/factory/           the installed pipeline (checks, runner) — replaced whole by an update
+.dca-factory/runs/<story>/ the run's protocol: hand-overs, marks, journal — disposable
 docs/                      what exists and why — written after the code, some of it generated
 ```
+
+One owner per place. `project/` is the people's — the description, the epics with their stories and,
+beside each story, the questions a stage asked and the answers a person gave. `.agents/factory/` is
+installed code, `dca-factory.profile.yaml` the person's configuration, `.dca-factory/` the run's
+protocol. A story carries its own state: `status: draft | approved | adopted | superseded` is the
+person's line, `status: delivered` and `delivered:` are written by the last gate and by nothing else.
+So the run folder can be deleted at any time and the factory still knows what is delivered and what
+was decided; what is lost is history — hand-overs, the journal, what a story cost.
 
 `project/` holds **intent**: written before the code, and read by every stage as input. `docs/` holds
 **what exists and why** — architecture documentation, decision records, maps generated from the
@@ -116,11 +125,16 @@ The backlog is markdown with front matter, one file per item, readable and revie
 tooling — no database, and no JSON as the source of truth.
 
 ```text
-project/backlog/
+project/epics/
   <epic>/
-    epic.md          the epic
-    <story>.md       one story
+    epic.md              the epic
+    <story>.md           one story, with its state in its front matter
+    <story>.decisions/   its questions and acceptances, one file each
 ```
+
+Stories stay with their epic for life. *Backlog* is a view — the stories that can be pulled:
+approved, not delivered, their dependencies met — not a folder things move in and out of. A story's
+id is unique in the whole project; a second one under the same id is refused, naming both.
 
 An **epic** carries four mandatory fields, and a story whose epic is missing one of them is
 refused before any planning starts:
@@ -255,12 +269,12 @@ without changing the result.
 
 | Stage | Reads | Writes |
 |---|---|---|
-| plan | the story, the project description, the glossary and the generated context map if present | `tasks/<story>/plan.md` |
-| test | the story, `plan.md` and the files it names | `tasks/<story>/tests.md` — with the criterion-to-test table |
-| build | the story, `plan.md`, `tests.md` and the files they name | `tasks/<story>/build.md` |
-| tidy | the story, `plan.md`, `build.md`, the files the story changed | `tasks/<story>/tidy.md` |
-| judge | the story, all predecessors, the story's diff, the product and the technical description | `tasks/<story>/judge.md` — with a verdict |
-| document | the story, all predecessors, the story's diff, the project's documents | `tasks/<story>/document.md` |
+| plan | the story, the project description, the glossary and the generated context map if present | `.dca-factory/runs/<story>/plan.md` |
+| test | the story, `plan.md` and the files it names | `.dca-factory/runs/<story>/tests.md` — with the criterion-to-test table |
+| build | the story, `plan.md`, `tests.md` and the files they name | `.dca-factory/runs/<story>/build.md` |
+| tidy | the story, `plan.md`, `build.md`, the files the story changed | `.dca-factory/runs/<story>/tidy.md` |
+| judge | the story, all predecessors, the story's diff, the product and the technical description | `.dca-factory/runs/<story>/judge.md` — with a verdict |
+| document | the story, all predecessors, the story's diff, the project's documents | `.dca-factory/runs/<story>/document.md` |
 
 **The builder stages may share one context, the judge never.** Plan, test, build and tidy can run one
 after another in a single context, each still writing its own file and each still gated. That costs
@@ -527,6 +541,13 @@ were red, which stage is next, what the reviewer decided. An orchestrator that r
 resumed, cannot be handed to another tool, and cannot be checked afterwards — and its memory is the
 one part of the run nobody can audit.
 
+**State and protocol are two things, and they live apart.** What is delivered and what was decided
+is state: it goes where people read and write — into the story's own front matter, written by the
+gate alone, and into the records beside the story. What a run produced on the way — hand-overs,
+marks, the journal — is protocol: it goes into a folder of its own that can be deleted without the
+factory forgetting anything but history. A fresh clone without the run folder must show the same
+delivered stories and the same next one; when it does not, state was hiding in protocol.
+
 **A repeat round must be able to read why the last one was refused.** Hand the refusal on as a
 file the stage is told to read. A stage that repeats blind reproduces exactly what was rejected,
 and the loop burns rounds on it.
@@ -667,7 +688,8 @@ Adopting describes what the system does today, with evidence, and is how a brown
 backlog. A story with `status: adopted` is never built: its scenarios are mapped to tests that exist and
 are green, a test the adoption has to write itself is shown to work by a break — a minimal change to the
 production code, applied to a scratch copy, that turns exactly this test red — and a fresh judge confirms
-that each test asserts its scenario. Then the story counts as delivered, and a new story can depend on it.
+that each test asserts its scenario. Then the story counts as delivered — the gate writes the time into
+the story, its status stays `adopted` — and a new story can depend on it.
 Two limits hold: green is weaker than red-then-green, which is why the judge reads every mapped test and a
 written test needs its break; and adoption is incremental — a project adopts the part the next new story
 touches, not the whole system in one run.
