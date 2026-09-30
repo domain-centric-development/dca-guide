@@ -9,6 +9,8 @@ level, and the three kinds of end-to-end test that are easy to mix up.
 
 - [The three levels](#the-three-levels)
 - [The happy path end to end, the rest integrated](#the-happy-path-end-to-end-the-rest-integrated)
+- [The use case once, each adapter its translation](#the-use-case-once-each-adapter-its-translation)
+- [Every invariant a unit test, every guard an invariant](#every-invariant-a-unit-test-every-guard-an-invariant)
 - [Integrated, not integrated against another system](#integrated-not-integrated-against-another-system)
 - [Smoke test, happy-path test, journey test](#smoke-test-happy-path-test-journey-test)
 - [Test shapes](#test-shapes)
@@ -20,8 +22,8 @@ level, and the three kinds of end-to-end test that are easy to mix up.
 
 | Level | What it runs | What it proves |
 |---|---|---|
-| **unit** | one aggregate, value object or domain service, no framework | an invariant the domain must never break |
-| **integration** | a use case through the wired application — its input port or its HTTP surface — with real adapters and persistence as the project runs it in tests; an external system stubbed at the protocol | a scenario's `Then` as the user states it, and every adapter the use case passes through |
+| **unit** | one aggregate, entity, value object or domain service, no framework | an invariant the domain must never break, its guards included |
+| **integration** | a use case through its input port in the wired application, with real outgoing adapters and persistence as the project runs it in tests, an external system stubbed at the protocol — or an incoming adapter's translation against a stubbed input port | a scenario's business outcome and every outgoing adapter the use case passes through — or what an incoming adapter makes of a request and of a result |
 | **e2e** | the running application through its page, in a browser | that the page is wired to the use case, and what only a browser can observe |
 
 **Rule: a scenario is tested at the lowest level that observes its `Then` from outside.**
@@ -60,6 +62,49 @@ An adapter's translation in all its cases — a refusal from the provider, a tim
 reached by the integration tests of the scenarios that name those cases. A case the adapter handles and no
 scenario names is not a criterion; it gets an integration test of its own, beside the unit tests for the
 invariants.
+
+## The use case once, each adapter its translation
+
+**Rule: a use case is tested once, through its input port. An incoming adapter is tested for its translation.**
+
+A use case is often called from more than one place: a page, an API, a message consumer, a tool an agent calls.
+A scenario tested through each of them tests the same use case once per adapter — the same outcome, the same
+persistence, the same stubs — and every one of those tests breaks when the use case changes. So the level has two
+shapes:
+
+- **The port test** runs the use case through its input port in the wired application: real outgoing adapters,
+  persistence as the project runs it in tests, an external system stubbed at the protocol. It asserts the
+  scenario's business outcome — what is stored, refused, published, returned. It is the test of the use case,
+  whichever adapter calls it.
+- **The adapter test** runs one incoming adapter against a stubbed input port: the request it turns into a
+  command, and the page, status or payload it makes of the result and of each refusal. It asserts what only the
+  adapter produces — a text on the page, a status code, a redirect, a message's payload. Where the framework
+  offers a slice for the adapter alone (a web slice in Spring, a test host in ASP.NET Core), it runs in that.
+
+A scenario's test is the one whose shape observes its `Then`: a business outcome goes to the port test, a text or
+status only the page or the API shows goes to that adapter's test, with the stubbed port answering the outcome.
+The happy path's end-to-end test is what proves the two fit together.
+
+Stubbing the input port in an adapter test is not the mistake the next section warns about: there the adapter
+under test is replaced by a stub of its own port; here the adapter is the unit under test, and the use case behind
+the port has a test of its own.
+
+## Every invariant a unit test, every guard an invariant
+
+**Rule: every rule a domain type enforces is an invariant, and every invariant has a unit test. A guard nobody
+named as an invariant is not written.**
+
+An invariant is what the domain must never let happen, whatever calls it: a title that is empty or longer than
+allowed, a task completed twice, an order line with a negative quantity. It belongs to the aggregate, entity or
+value object that holds the data, and it is tested there, without a framework — the part of the suite that
+survives a rewrite of every adapter.
+
+The guards a type's constructor carries are invariants too: a value that is required, trimmed, within a range,
+unique within its aggregate. A criterion rarely names them, because a user never reaches them through the page —
+the page trims, the form requires. That is exactly why they need their own test: the next caller is not the page.
+A guard written without a test is code nobody asked for; one that is needed is named as an invariant and tested
+first. Planning names the invariants of every domain type a change touches, its guards included, or says why a
+type has none.
 
 ## Integrated, not integrated against another system
 

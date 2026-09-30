@@ -296,13 +296,15 @@ explores the repository, and that exploration is paid again on every turn of the
 The **plan** names the elements that change — aggregates, value objects, use cases with their ports,
 adapters — in the project's own vocabulary, and gives every criterion its test level from what the
 project can run *today*: the one scenario the story marks as its **happy path** end to end, every other
-scenario integrated through the wired application, `browser-only` with a reason where only a browser
-observes the outcome ([Test Levels](../topics/testing-levels.md)). It backs every statement about the code with a file and a
-line. It writes no code.
+scenario integrated — a business outcome through the use case's input port, a text or status only an
+incoming adapter produces through that adapter against a stubbed port — `browser-only` with a reason where
+only a browser observes the outcome ([Test Levels](../topics/testing-levels.md)). It names the invariants of
+every domain type it changes, the guards included, or says why a type has none. It backs every statement
+about the code with a file and a line. It writes no code.
 
 The **test** stage writes one test per acceptance criterion at the level the plan gave it — an external
-system stubbed at the protocol, never mocked at the port — plus unit tests for the invariants the story
-introduces, and records the mapping:
+system stubbed at the protocol, never mocked at the port — plus a unit test for every invariant the plan
+names, and records the mapping:
 
 ```markdown
 | criterion | test |
@@ -316,7 +318,8 @@ expects makes the test green before any code exists, and a green test at this po
 
 The **build** stage makes those tests pass with the smallest change that works, following the plan's
 change list. An element the plan did not name is a sign the plan was wrong: it is noted, not quietly
-added. It never changes a test to make it pass.
+added — a guard in a domain type the plan did not name as an invariant included, since no test asked for it.
+It never changes a test to make it pass.
 
 The **tidy** stage is the refactor half of red–green–refactor, which the build stage deliberately
 leaves undone. It works only inside the story's footprint, changes no test and changes no behaviour.
