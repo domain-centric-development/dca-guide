@@ -161,8 +161,10 @@ adapter behind it does. Nothing above this line depends on the answer.
 - Ubiquitous Language used throughout domain code
 - The context's glossary names the terms **and the operations**, each with the word the code uses; an
   operation's code word is decided by the people who own the domain, not by whoever translates it
-- *Create* and *add* are different operations: one brings a thing into existence, the other puts an
-  existing thing into a collection. Which one an operation is decides which aggregate holds its invariants
+- A domain word that can name more than one operation is decided by its effect: what exists before the
+  step and after it, and whose state changes. *Create* brings a thing into existence, *add* puts an
+  existing one into a collection; *delete* removes it, *cancel* and *archive* keep it with a state. The
+  effect decides which aggregate holds the invariants
 
 ## APPLICATION LAYER RULES
 

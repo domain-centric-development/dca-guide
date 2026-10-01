@@ -103,9 +103,11 @@ in them is invented: a stage that reads an invented look builds it.
 | Glossary | per context, the terms and the operations as the people who own the domain say them, each with the word the code uses |
 
 The glossary names **operations as well as terms**, because a verb is a modelling decision, not a
-translation. *Create* brings a thing into existence; *add* puts an existing thing into a collection. A
-word like the German *anlegen* covers both, and which one the operation is says where its invariants
-live. A model that has to translate the word picks one of them, and the next run may pick the other;
+translation. A domain word can name more than one operation with a different effect: the German
+*anlegen* covers *create* (the thing comes into existence) and *add* (an existing thing goes into a
+collection); *löschen* covers *delete*, *cancel* and *archive* (gone, or kept with a state). Which one
+the operation is says where its invariants live. A model that has to translate the word picks one of
+them, and the next run may pick another;
 where the glossary gives the code word, every run uses it. So the code word of an operation is decided
 before the first story: the description names the operations it already knows, and the backlog skill
 asks for each one a story brings.
@@ -117,6 +119,15 @@ caused each event, the **aggregate** that accepts the command and holds the inva
 model** a person looks at to decide, the **policies** ("whenever this happens, do that") and the **hot
 spots**, the questions nobody can answer yet. An event, a command and a read model each become a
 glossary line; a hot spot becomes an open assumption.
+
+Where the words can be looked up, they are looked up **per bounded context** before the question is
+asked: a published standard of the context's subdomain, the vocabulary of widely used systems in that
+field, and above all the operations those systems keep apart although they look alike — holding an
+amount and collecting it, returning goods and refunding money. *Cancel* in a payment context and
+*cancel* in an ordering context are different operations, so a lookup for the whole product finds the
+wrong one. What the lookup finds is offered with its source; the people who own the domain decide. A
+generic context usually adopts the field's vocabulary, a core context keeps its own and takes the
+distinctions.
 
 They hold decisions, never code design. "The client keeps the draft; the server stores what is
 submitted" belongs in the product; "server-rendered pages, no client framework" in the technical
@@ -244,8 +255,9 @@ the code the story touches, while the person who writes it is still there:
 - Can a user probe or exhaust a rule by repeating it?
 - Does every rule have a scenario, and does every scenario have one cause?
 - Is every scenario's `When` an operation the glossary names, with its code word? A verb the glossary
-  lacks is asked as its meaning — does the thing exist before this step, or does this step create
-  it? — never translated by whoever writes the code.
+  lacks is asked as its effect — what exists before the step and after it, and whose state changes
+  (does the thing exist before, or does the step create it? is it gone afterwards, or kept with a
+  state?) — never translated by whoever writes the code.
 
 What the project description already answers is not asked again. What stays open becomes an `open:`
 assumption, and a story whose open assumption fixes an observable result stays a draft.
