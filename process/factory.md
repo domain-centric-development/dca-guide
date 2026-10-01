@@ -100,7 +100,7 @@ in them is invented: a stage that reads an invented look builds it.
 |---|---|
 | Bounded contexts | each context, its responsibility and its subdomain type (core, supporting, generic) |
 | Relationships | upstream and downstream, the pattern, where the translation happens, and the reason |
-| Glossary | per context, the terms and the operations as the people who own the domain say them, each with the word the code uses |
+| Glossary | one section per context: the terms and the operations as the people who own the domain say them, each with the word the code uses — until the context has code; then they move into its own glossary |
 
 The glossary names **operations as well as terms**, because a verb is a modelling decision, not a
 translation. A domain word can name more than one operation with a different effect: the German
