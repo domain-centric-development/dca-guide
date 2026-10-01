@@ -100,6 +100,23 @@ in them is invented: a stage that reads an invented look builds it.
 |---|---|
 | Bounded contexts | each context, its responsibility and its subdomain type (core, supporting, generic) |
 | Relationships | upstream and downstream, the pattern, where the translation happens, and the reason |
+| Glossary | per context, the terms and the operations as the people who own the domain say them, each with the word the code uses |
+
+The glossary names **operations as well as terms**, because a verb is a modelling decision, not a
+translation. *Create* brings a thing into existence; *add* puts an existing thing into a collection. A
+word like the German *anlegen* covers both, and which one the operation is says where its invariants
+live. A model that has to translate the word picks one of them, and the next run may pick the other;
+where the glossary gives the code word, every run uses it. So the code word of an operation is decided
+before the first story: the description names the operations it already knows, and the backlog skill
+asks for each one a story brings.
+
+The questions behind the domain part follow the grammar of Event Storming, without the workshop: first
+the **domain events** — what happened, in the past tense, in the words of the people who own the
+domain, because people agree on a fact more readily than on a procedure — then the **command** that
+caused each event, the **aggregate** that accepts the command and holds the invariants, the **read
+model** a person looks at to decide, the **policies** ("whenever this happens, do that") and the **hot
+spots**, the questions nobody can answer yet. An event, a command and a read model each become a
+glossary line; a hot spot becomes an open assumption.
 
 They hold decisions, never code design. "The client keeps the draft; the server stores what is
 submitted" belongs in the product; "server-rendered pages, no client framework" in the technical
@@ -226,6 +243,9 @@ the code the story touches, while the person who writes it is still there:
   criterion, and a gate refuses a criterion that is green before the build.
 - Can a user probe or exhaust a rule by repeating it?
 - Does every rule have a scenario, and does every scenario have one cause?
+- Is every scenario's `When` an operation the glossary names, with its code word? A verb the glossary
+  lacks is asked as its meaning — does the thing exist before this step, or does this step create
+  it? — never translated by whoever writes the code.
 
 What the project description already answers is not asked again. What stays open becomes an `open:`
 assumption, and a story whose open assumption fixes an observable result stays a draft.
@@ -463,7 +483,8 @@ decision.
 ## Journeys: a guard over what is delivered
 
 An epic may name its **journey** — the flow through its stories that must never break, walked to its
-outcome event. The journey test is a backlog item of its own (`kind: journey`) that depends on the stories
+outcome event. Written as an event timeline, each step is a command and the event it causes, ending in
+the outcome event; a step whose command or event the glossary does not name is a question first. The journey test is a backlog item of its own (`kind: journey`) that depends on the stories
 building its steps. It becomes ready when they are delivered and runs plan, test, judge and document —
 there is nothing to build. Its gate expects the test **green**, the inverse of a story: every step exists
 when it is written, so it is a regression guard, not a criterion.

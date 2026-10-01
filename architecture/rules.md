@@ -56,6 +56,8 @@
 ### Domain Event Rules (Internal to Bounded Context)
 - Domain Events are immutable
 - Domain Events use past tense naming (e.g., OrderCreated, not CreateOrder)
+- A domain event's name is the term plus the past participle of the operation's code word in the
+  glossary: the operation *place* on an order gives `OrderPlaced`, never `OrderSubmitted` beside it
 - Domain Events represent something that happened in the domain
 - Domain Events are part of the domain model: `{context}/domain/model/`, or an own
   `{context}/domain/event/` segment once the model package grows. `DCA-ADV-002` requires the
@@ -157,11 +159,17 @@ adapter behind it does. Nothing above this line depends on the answer.
 - Domain can be tested without infrastructure
 - Domain reflects business, not database structure
 - Ubiquitous Language used throughout domain code
+- The context's glossary names the terms **and the operations**, each with the word the code uses; an
+  operation's code word is decided by the people who own the domain, not by whoever translates it
+- *Create* and *add* are different operations: one brings a thing into existence, the other puts an
+  existing thing into a collection. Which one an operation is decides which aggregate holds its invariants
 
 ## APPLICATION LAYER RULES
 
 ### Use Case / Application Service Rules
 - One use case class per business operation
+- A use case is named after an operation of the glossary: its code word plus the term (`PlaceOrder`,
+  `CancelOrder`); a verb the glossary does not name is a question, not a choice
 - Use case implements Input Port interface
 - Use case orchestrates domain objects
 - Use case is thin, delegates to domain
@@ -389,6 +397,13 @@ or an annotation.
 **The cut: would a domain expert have a word for this failure?** `InsufficientStock`, `CartAlreadyCompleted`,
 `PasswordTooWeak` — yes, so each is a domain exception with that word in its name. "Must not be null", "must
 be positive", "must not exceed 255 characters" — no, so those stay `IllegalArgumentException`.
+
+**The name is the broken rule, in the domain's words; the suffix is the project's.** `InsufficientStock`
+says what the domain refuses; `InvalidInput` or `ValidationError` says only that something failed. The
+suffix follows the platform by default — `Exception`, as both Java and .NET expect — and a project may
+drop it where its language reads better without (`InsufficientStock`). The project records the
+choice, and every failure of the project follows it: a run that has to pick the suffix picks differently
+each time.
 
 The two kinds sit next to each other in one method, and telling them apart is the point:
 
