@@ -292,6 +292,34 @@ called") measures that code ran, not that anything happened for anyone. And an e
 the way in ("checkout started") measures intent, not outcome; the outcome is the fact at the end of
 the flow.
 
+### Validation: the outcome can happen
+
+Naming the event is half of it. The other half is that the code publishes an event of that name — and
+nothing compares the two unless something is made to. A stage that translates the story's verb on its
+own (*add* where the epic says *create*) produces an application in which every criterion is met and the
+epic's measure never fires, because the event it counts is called something else.
+
+So the story after which the outcome can happen — the step that completes the flow — says so:
+
+```yaml
+publishes: OrderPlaced
+```
+
+Two gates then hold it, one on each side:
+
+| Gate | Checks |
+|---|---|
+| plan | the name is a word of the epic's `metric` — two names for one outcome are found before a line of code |
+| document | the production code declares a type of that name, and a file the story changed — the aggregate that raises it, the use case that publishes it — refers to it |
+
+The reviewers and the judge read the epic too, so a synonym that slips past a gate is still a finding.
+A journey (below) then guards the way to the event once the epic's stories are delivered.
+
+What the pipeline checks is that the outcome **can** happen: locally, in CI, without users. Whether it
+**does** — the event counted against a target after the deploy — is operations, and needs a running
+system with real users. The outcome event is the hook that measurement attaches to; the pipeline
+does not pretend to be it.
+
 ## The stages and their hand-over files
 
 One story runs through six stages. Every stage is a **closed assignment**: it reads the story and
