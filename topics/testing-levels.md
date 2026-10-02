@@ -89,6 +89,12 @@ Stubbing the input port in an adapter test is not the mistake the next section w
 under test is replaced by a stub of its own port; here the adapter is the unit under test, and the use case behind
 the port has a test of its own.
 
+The outgoing side has no second shape, because the reason for it is missing: an output port usually has one adapter
+in production, so the port test that runs it proves the use case and that adapter's translation in one pass. A
+mocked output port would prove the mock, and the adapter would need a test of its own anyway. Where a port does have
+several adapters — two payment providers, a cache in front of a store — the port test runs one, and every adapter
+gets a **contract test**: one test of what the port promises, run against each adapter.
+
 ## Every invariant a unit test, every guard an invariant
 
 **Rule: every rule a domain type enforces is an invariant, and every invariant has a unit test. A guard nobody
