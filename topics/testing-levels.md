@@ -139,7 +139,8 @@ places.
 **A journey is defined by an epic, not by the product description.** An epic states an intent and names its
 outcome event — the fact at the end of the flow. Its journey is that flow, walked end to end until the outcome
 event is published, and it can only be written once the stories that build its steps are delivered. Before the
-first line of code nobody can say which flow that will be; an epic without a journey has decided against one.
+first line of code nobody can say which flow that will be. Once its stories are delivered, an epic without a
+journey is unguarded until it names one or decides against one, with a reason.
 
 A journey test is a regression guard. It is green when it is written, which a criterion may never be, so it is
 not a story's criterion but an item of its own that depends on the stories it walks. A journey run against a
