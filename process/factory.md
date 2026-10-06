@@ -394,14 +394,19 @@ without changing the result.
 | judge | the story, all predecessors, the story's diff, the product and the technical description | `.dca-factory/runs/<story>/judge.md` — with a verdict |
 | document | the story, all predecessors, the story's diff, the project's documents | `.dca-factory/runs/<story>/document.md` |
 
-**The builder stages may share one context, the judge never.** Plan, test, build and tidy can run one
-after another in a single context, each still writing its own file and each still gated. That costs
-less, because each stage builds on what the one before read instead of reading it again. What it gives
-up is that the build stage knows how the tests were written. The gate compensates for that: it binds
-the red proof to the tests as they were seen failing. The judge always starts fresh, because a review
-by the context that wrote the code is the self-assessment the gates exist to replace. Sharing is a
-choice per run, not the default; a check outside the shared context confirms that the red proof exists
-and runs the build and tidy gates again.
+**The builder stages share one context, the judge never the builder's.** By default plan, test, build
+and tidy run one after another in a single context, each still writing its own file and each still
+gated. That costs less, because each stage builds on what the one before read instead of reading it
+again. What it gives up is that the build stage knows how the tests were written. The gate compensates
+for that: it binds the red proof to the tests as they were seen failing, and a check outside the shared
+context confirms that the red proof exists and runs the build and tidy gates again. The judge starts in
+a context of its own, because a review by the context that wrote the code is the self-assessment the
+gates exist to replace; the document stage may follow it in that context, since it writes no code. A
+project that wants one context per stage says so once, and every run starts them separately.
+
+**A running stage can be followed.** Every stage writes its tool's output as it happens, one event per
+line, so a person sees which files a stage reads and writes and which commands it runs while it runs —
+not only the hand-over file at its end.
 
 **What a story changed is recorded, not reconstructed.** Around every stage the pipeline records
 which files changed, and after it the whole story's diff. The diff is taken against a snapshot of the
