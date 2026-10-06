@@ -408,7 +408,9 @@ project that wants one context per stage says so once, and every run starts them
 
 **A running stage can be followed.** Every stage writes its tool's output as it happens, one event per
 line, so a person sees which files a stage reads and writes and which commands it runs while it runs —
-not only the hand-over file at its end.
+not only the hand-over file at its end. A stage runs without a person to grant a permission: a command its
+allow-list does not cover is refused, and the stage spends a turn on another way. Those refusals are
+counted per stage, so a stage that keeps reaching past its allow-list shows, and its prompt is the place to fix.
 
 **What a story changed is recorded, not reconstructed.** Around every stage the pipeline records
 which files changed, and after it the whole story's diff. The diff is taken against a snapshot of the
