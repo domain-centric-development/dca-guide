@@ -150,7 +150,9 @@ domain, because people agree on a fact more readily than on a procedure — then
 caused each event, the **aggregate** that accepts the command and holds the invariants, the **read
 model** a person looks at to decide, the **policies** ("whenever this happens, do that") and the **hot
 spots**, the questions nobody can answer yet. An event, a command and a read model each become a
-glossary line; a hot spot becomes an open assumption.
+glossary line; a hot spot becomes an open assumption. A read changes nothing, so no event names it and
+the event-first question never reaches its verb: how a person calls looking at a read model — *list*
+or *show* — is asked on its own and entered with its code word, like any operation.
 
 Where the words can be looked up, they are looked up **per bounded context** before the question is
 asked: a published standard of the context's subdomain, the vocabulary of widely used systems in that
