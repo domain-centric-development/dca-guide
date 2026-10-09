@@ -190,10 +190,13 @@ tooling — no database, and no JSON as the source of truth.
 project/epics/
   <epic>/
     epic.md              the epic
-    <story>.md           one story, with its state in its front matter
-    <story>.decisions/   its questions and acceptances, one file each
+    <story>/             one story, a folder named after its id
+      story.md           the story, with its state in its front matter
+      decisions/         its questions and acceptances, one file each
+      findings.md        the judge's confirmed minors, kept once it is delivered
 ```
 
+One shape for both: a folder and its file. Everything that belongs to a story lives in its folder.
 Stories stay with their epic for life. *Backlog* is a view — the stories that can be pulled:
 approved, not delivered, their dependencies met — not a folder things move in and out of. A story's
 id is unique in the whole project; a second one under the same id is refused, naming both.
@@ -210,6 +213,11 @@ refused before any planning starts:
 
 This is not bureaucracy. A stage that cannot read the intent invents one, and an invented intent is
 indistinguishable from a stated one once it is in the code.
+
+**An epic may wait for another.** `depends_on:` in the epic names the epics that must be delivered before its
+stories start; an epic is delivered when every one of its stories is. Without it, epics run side by side
+where the factory runs more than one story, and the earlier epic first where it runs one. The order is
+written down, never assumed: an epic that names no epic there is, itself or a cycle is refused.
 
 A **story** names the bounded context it changes — a context the designed map already carries,
 built or not yet — and states its acceptance criteria as observable end-user behaviour. Each criterion is a
@@ -395,6 +403,11 @@ without changing the result.
 | tidy | the story, `plan.md`, `build.md`, the files the story changed | `.dca-factory/runs/<story>/tidy.md` |
 | judge | the story, all predecessors, the story's diff, the product and the technical description | `.dca-factory/runs/<story>/judge.md` — with a verdict |
 | document | the story, all predecessors, the story's diff, the project's documents | `.dca-factory/runs/<story>/document.md` |
+
+**After the last gate, the integration.** Where the factory runs a story on its own branch, the last gate
+does not deliver it: the main line is merged in, the story becomes one commit, and an integrate gate holds
+that tree to the tidy gate's checks once more before the main line takes it. Where git stops on a conflict,
+an integrate step resolves it in the story's worktree and writes `.dca-factory/runs/<story>/integrate.md`.
 
 **The builder stages share one context, the judge never the builder's.** By default plan, test, build
 and tidy run one after another in a single context, each still writing its own file and each still
@@ -610,9 +623,10 @@ waits behind whatever else is ready.
 
 **So a story with something to see stops before it is delivered.** Every check has passed; instead
 of marking the story done, the last gate asks a human to accept it, in a record like every other
-question: what to look at, criterion by criterion, and how to start the application. The story holds
-the checkout while it waits, so no other story builds on work nobody has accepted yet — with several
-stories in a backlog that is what keeps a correction from landing on someone else's code.
+question: what to look at, criterion by criterion, and how to start the application. The story waits on
+its own branch and reaches the main line only once it is accepted, so no other story builds on work nobody
+has accepted yet — with several stories in a backlog that is what keeps a correction from landing on someone
+else's code. The next story runs meanwhile: waiting holds no checkout.
 
 **The answer goes into the same story.** "Accepted" delivers it. A correction is written into the
 story itself — a criterion added or changed, the answer recorded as answered — and the story runs
@@ -708,6 +722,23 @@ nothing.
 **An answer that exists only in a reply is lost.** A scoping decision, an assumption the domain
 expert settled, a reason for a deviation: if it is not written where the next run will look, the
 same question comes back in a month with a different answer.
+
+### A story on its own branch
+
+**Code waits on a branch, state waits in one place.** Every story the factory runs gets a worktree of its own,
+on a branch of its own. A story that waits — for an answer, for an acceptance — waits there, and the next one
+runs. What is state does not go with it: the story, its questions and answers, the run's protocol stay in the
+main checkout and the worktree sees them through links. A question written on a branch is a question the
+inbox never shows, and an answer that lives on a branch is lost with it.
+
+**Delivered means on the main line, checked there.** A story is delivered when its code is on the main line,
+not when its last gate passed in the worktree. The main line is merged into the story, the story becomes one
+commit, and the gate runs once more on that tree before the main line moves. A story that passed against
+yesterday's main line has proven nothing about today's.
+
+**A conflict is resolved, not chosen.** Where two stories changed the same lines, both changes hold: the main
+line's, which a person already accepted, and the story's on top of it. Taking one side to make the conflict
+go away delivers one story by removing another.
 
 ### One source, or two truths
 
