@@ -145,7 +145,7 @@ adapter behind it does. Nothing above this line depends on the answer.
 - Event Consumer calls Input Port, never domain directly
 - Consuming bounded context maintains its own model
 - Eventual consistency between bounded contexts via events
-- Assume at-least-once delivery: consumers deduplicate (event ID or naturally idempotent operations)
+- Assume at-least-once delivery: consumers deduplicate per effect (the effect and the event ID, recorded in the effect's transaction) or make the operation naturally idempotent
 - Consumers tolerate out-of-order arrival (check event version/timestamp, never assume sequence)
 - Permanently failing events go to a dead-letter queue — never dropped silently
 - An event handler modifies at most one aggregate, in its own transaction
