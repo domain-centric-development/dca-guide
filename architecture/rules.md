@@ -425,7 +425,9 @@ public void decreaseStock(final int amount) {
 
 A negative amount is a defect in the caller. A quantity the warehouse does not have is a legitimate request
 with a business answer, and the exception carries the figures the rule compared so the caller can say what
-happened.
+happened. The caller says it — **the exception's message is never what a person reads.** It is for the log; the
+words on a page or in an answer are the incoming adapter's, made from the failure's type and its values. A
+message passed through ties the user's language to the domain's and closes the door on a translation.
 
 ### Where a failure is declared
 
@@ -449,7 +451,8 @@ public interface OrderRepository extends Repository<Order, OrderId> {
 ### The adapter answers
 
 Neither base type knows a status code, a header or a message shape. The incoming adapter maps type to
-protocol answer, in **one place per context**:
+protocol answer, in **one place per context**, and writes the words itself — from the failure's values, never
+from its message:
 
 ```java
 @RestControllerAdvice(basePackages = "com.company.project.order.adapter.incoming.api")
@@ -457,17 +460,19 @@ public class OrderApiExceptionHandler {
 
     @ExceptionHandler(OrderNotFoundException.class)
     public ProblemDetail handleOrderNotFound(final OrderNotFoundException exception) {
-        return problem(HttpStatus.NOT_FOUND, "Order not found", exception.getMessage());
+        return problem(HttpStatus.NOT_FOUND, "Order not found",
+                "There is no order " + exception.orderId().value() + ".");
     }
 
     @ExceptionHandler(InsufficientStockException.class)
     public ProblemDetail handleInsufficientStock(final InsufficientStockException exception) {
-        return problem(HttpStatus.CONFLICT, "Not enough stock", exception.getMessage());
+        return problem(HttpStatus.CONFLICT, "Not enough stock",
+                "Requested " + exception.requested() + ", available " + exception.available() + ".");
     }
 
     @ExceptionHandler(UseCaseException.class)
     public ProblemDetail handleUseCaseFailure(final UseCaseException exception) {
-        return problem(HttpStatus.UNPROCESSABLE_ENTITY, "Request cannot be served", exception.getMessage());
+        return problem(HttpStatus.UNPROCESSABLE_ENTITY, "Request cannot be served", null);
     }
 
     private static ProblemDetail problem(final HttpStatus status, final String title, final String detail) {
@@ -486,8 +491,10 @@ and still answers `404`, because what the caller has to do about it is ask for s
 starting point: `404` for something that is not there, `409` for a conflict with existing state, `422` for a
 rule that refused an understood request, `400` for a value the model does not accept at all.
 
-Page controllers of the same context catch the two base types and render the message into the form it came
-from. One use case, several protocols, one decision site each.
+Page controllers of the same context catch the failures and render the page's own words into the form it came
+from — a text the page keeps per failure type, or a message key its translations resolve, filled with the
+failure's values. One use case, several protocols, one decision site each, and every sentence in the language
+of the surface that shows it.
 
 Two things the adapter must not do: expose a stack trace or an internal detail to the outside, and catch
 `Exception` or `RuntimeException` around a use case call. A blanket catch answers a defect of this
