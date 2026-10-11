@@ -293,7 +293,10 @@ the code the story touches, while the person who writes it is still there:
 - Does the story rely on an external system neither the designed map nor the technical decisions
   carry? Then it is a question about the description first, and the system's contract belongs
   there, not in every story.
-- For every input: the format, the allowed range, what happens at the boundaries.
+- For every input: the format, the allowed range, what happens at the boundaries. Every limit gets a
+  scenario on each side: "1 to 200 characters" is 200 accepted and 201 refused, 1 accepted and an empty
+  value refused. A limit whose refusal alone is written leaves its acceptance without a test.
+- For every order: a scenario that changes an item in the middle, not only at the ends.
 - For every default: one stated value.
 - For every dependency: what the user sees when it fails, and after how long a slow answer counts
   as a failure.
