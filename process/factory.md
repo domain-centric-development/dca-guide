@@ -16,6 +16,7 @@ detail that may change without the process changing.
 - [A foundation once, then the cycle](#a-foundation-once-then-the-cycle)
 - [The project description](#the-project-description)
 - [The backlog contract](#the-backlog-contract)
+- [The living spec: stories are changes](#the-living-spec-stories-are-changes)
 - [Ideation: which problem is worth solving](#ideation-which-problem-is-worth-solving)
 - [Outcome events](#outcome-events)
 - [The stages and their hand-over files](#the-stages-and-their-hand-over-files)
@@ -37,30 +38,37 @@ A factory that delivers stories has three parts, and each lives in its own place
 
 ```text
 dca-factory.profile.yaml   the stack profile — the person's, committed
-project/                   what is to be built (people write it)
-  product.md               what, for whom, surfaces, qualities, what it is not
+dca.profile.yaml           the method's configuration: where things are, the resolved conventions — optional
+product/                   what is to be built and what holds (people write it; the spec is kept by delivery)
+  overview.md              what, for whom, surfaces, qualities, what it is not
   tech.md                  stack, frontend approach, persistence, runtime, integrations, version policy
   domain.md                the designed cut: contexts, subdomain types, relationships and why
-  epics/<epic>/            the epic, its stories, and beside each story its decisions
+  spec/                    what holds: per context its scenarios and its glossary, and the journeys
+  epics/<epic>/            the changes: the epic, its stories, and beside each story its decisions
+  discovery/<topic>/       research and proposed epics
 .agents/factory/           the installed pipeline (checks, runner) — replaced whole by an update
 .dca-factory/runs/<story>/ the run's protocol: hand-overs, marks, journal — disposable
 docs/                      what exists and why — written after the code, some of it generated
 ```
 
-One owner per place. `project/` is the people's — the description, the epics with their stories and,
+One owner per place. `product/` is the people's — the description, the epics with their stories and,
 beside each story, the questions a stage asked and the answers a person gave. `.agents/factory/` is
 installed code, `dca-factory.profile.yaml` the person's configuration, `.dca-factory/` the run's
 protocol. A story carries its own state: `status: draft | approved | adopted | superseded` is the
-person's line, `status: delivered` and `delivered:` are written by the last gate and by nothing else.
-So the run folder can be deleted at any time and the factory still knows what is delivered and what
-was decided; what is lost is history — hand-overs, the journal, what a story cost.
+person's line; `status: delivered`, `delivered:` and `delivered_by:` say that it is delivered, when, and
+who claims it — `gate` where the last gate wrote them, `hand:<who>` where a person built the story and
+delivered it by hand. Built or adopted makes no difference once delivered: one end state. A hand's claim
+is a claim until the factory checks it the way it checks adopted behaviour; then the gate's line replaces
+it. So the run folder can be deleted at any time and the factory still knows what is delivered and what
+was decided; what is lost is history — hand-overs, the journal, what a story cost. Which stories are
+delivered, and by whom, needs no tool: the front matter says it, and a `grep` lists it.
 
-`project/` holds **intent**: written before the code, and read by every stage as input. `docs/` holds
+`product/` holds **intent** and **what holds**: written before the code, and read by every stage as input. `docs/` holds
 **what exists and why** — architecture documentation, decision records, maps generated from the
 code, user and operations guides — written after the code, by people and by the stage that documents
 a story, which writes only what the code confirms. The rule of thumb: an intention that need not be
-built yet goes to `project/`; a statement the code could show goes to `docs/`. Glossaries stay beside
-the code of their context. Where the two places meet — the designed map against a map generated from
+built yet goes to `product/`; a statement the code could show goes to `docs/`. A context's glossary
+belongs to its spec — the language of what holds — not to the code's folders. Where the two places meet — the designed map against a map generated from
 the code — a difference is a finding, not a duplicate: a context planned and not built yet, or built
 without having been designed.
 
@@ -104,7 +112,7 @@ Before the first story, two files describe what is to be built and a third, opti
 the designed cut. They are written with the person who decides, one question per heading, and nothing
 in them is invented: a stage that reads an invented look builds it.
 
-**The product** — `product.md`:
+**The product** — `overview.md`:
 
 | Heading | Says |
 |---|---|
@@ -187,7 +195,7 @@ The backlog is markdown with front matter, one file per item, readable and revie
 tooling — no database, and no JSON as the source of truth.
 
 ```text
-project/epics/
+product/epics/
   <epic>/
     epic.md              the epic
     <story>/             one story, a folder named after its id
@@ -304,13 +312,41 @@ the code the story touches, while the person who writes it is still there:
 What the project description already answers is not asked again. What stays open becomes an `open:`
 assumption, and a story whose open assumption fixes an observable result stays a draft.
 
+## The living spec: stories are changes
+
+A story says what is to change; it does not stay true. A later story changes the same behaviour, and
+the first one, still in its folder, says what no longer holds. So what holds lives in one place of its
+own: `product/spec/<context>/scenarios.md`, one file per bounded context, carrying every criterion that
+holds today — in the story's own shape, a scenario under its rule or a line — and under each the one test
+that proves it. No status, no ticks, no story id: what stands there holds. A criterion without a test
+line, or with a red test, is visibly unproven, readable without any tool. Flows across contexts stand in
+`product/spec/journeys.md`.
+
+A criterion's key is unique within its context and names one behaviour for good. That makes the change
+a story carries computable. The person writes the wish in their own words — new criteria, and where
+behaviour the system has changes, a sentence under `## Changed expectations`. The plan reads the spec
+and derives the delta by key: what the story adds, what it changes, what it takes away, which rule it
+rewords. A check holds the delta to the story and the spec, and to one rule above all: nothing that
+holds changes without a person's sentence behind it — the story's changed expectations, or an answered
+question. Where neither says it, the plan asks.
+
+The gate that delivers merges the delta — after the human's acceptance, where there is one — and writes
+each criterion's test line. Nothing else writes the scenarios. Stories delivered side by side meet at
+the merge: the gate checks the delta again against the spec as it stands then, and a criterion another
+story changed meanwhile is a question, not a silent overwrite. From then on the story is history; editing
+it changes nothing that holds, and a change of delivered behaviour is a new story. The context's
+glossary stands beside its scenarios: the language of what holds, kept by the glossary work as before.
+
+Two questions, two places: *which stories are done, by whom?* — the stories' front matter; *what holds
+today?* — the spec. Two implementations of the same backlog end in the same spec, criterion by criterion.
+
 ## Ideation: which problem is worth solving
 
 An epic states why a body of work exists and which outcome event measures it. Where those two are not
 clear yet — someone brings a problem, a goal, a key result or simply a wished deliverable — a step comes
 before the backlog: finding out which problem is worth solving, and how anyone would know it got better.
 
-The step writes one report per topic, `project/discovery/<topic>/discovery.md`, in a fixed shape:
+The step writes one report per topic, `product/discovery/<topic>/discovery.md`, in a fixed shape:
 
 | Section | What it holds |
 |---|---|
@@ -854,8 +890,9 @@ Adopting describes what the system does today, with evidence, and is how a brown
 backlog. A story with `status: adopted` is never built: its scenarios are mapped to tests that exist and
 are green, a test the adoption has to write itself is shown to work by a break — a minimal change to the
 production code, applied to a scratch copy, that turns exactly this test red — and a fresh judge confirms
-that each test asserts its scenario. Then the story counts as delivered — the gate writes the time into
-the story, its status stays `adopted` — and a new story can depend on it.
+that each test asserts its scenario. Then the story is delivered like any other — `status: delivered`,
+written by the gate; `adopted` was the input, "the code exists: check it, build nothing" — and a new story
+can depend on it. The same path proves a story a person delivered by hand.
 Two limits hold: green is weaker than red-then-green, which is why the judge reads every mapped test and a
 written test needs its break; and adoption is incremental — a project adopts the part the next new story
 touches, not the whole system in one run.
