@@ -492,6 +492,13 @@ names, and records the mapping:
 | shows-empty-state | com.example.reporting.MonthlyReportPageTest#showsEmptyState |
 ```
 
+Three habits make such a test prove what it names, and the reviews of many runs found each missing again and
+again. A test starts from a state it sets itself — the suite empties what its tests write before each one, or
+"the list is empty" can never be the start. It asserts the element it is about, never the page's whole text,
+where "disabled" is true as soon as anything is. And a criterion's test above the unit level runs through the
+real use case: a test that replaces the input port it is about proves the replacement. The last one a check
+can count, and does — only a test of an adapter's translation stubs the port, by design.
+
 It adds only the stubs the test sources need to compile, and a stub **refuses to answer** — it
 throws rather than returning a value, even an empty one. A stub that returns the answer a criterion
 expects makes the test green before any code exists, and a green test at this point proves nothing.
