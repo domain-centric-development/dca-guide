@@ -492,12 +492,15 @@ names, and records the mapping:
 | shows-empty-state | com.example.reporting.MonthlyReportPageTest#showsEmptyState |
 ```
 
-Three habits make such a test prove what it names, and the reviews of many runs found each missing again and
+Four habits make such a test prove what it names, and the reviews of many runs found each missing again and
 again. A test starts from a state it sets itself — the suite empties what its tests write before each one, or
 "the list is empty" can never be the start. It asserts the element it is about, never the page's whole text,
 where "disabled" is true as soon as anything is. And a criterion's test above the unit level runs through the
 real use case: a test that replaces the input port it is about proves the replacement. The last one a check
-can count, and does — only a test of an adapter's translation stubs the port, by design.
+can count, and does — only a test of an adapter's translation stubs the port, by design. And every assertion
+could fail: with the behaviour absent, it turns red. An assertion on a mechanism the code does not use, a count of
+something nothing writes, an absence that held before the story began — each is green whatever the code does, and
+a judge that reads it as proof passes a criterion nobody tested.
 
 It adds only the stubs the test sources need to compile, and a stub **refuses to answer** — it
 throws rather than returning a value, even an empty one. A stub that returns the answer a criterion
@@ -535,7 +538,7 @@ it either finds the evidence or it does not.
 |---|---|
 | plan | the epic is complete; the story is well-formed, released, marks exactly one happy path, and its context is on the map |
 | after test | every criterion is mapped to a test; the test exists in the sources; the test sources compile; **every mapped test is red**; an end-user test belongs to the happy path or a `browser-only` scenario |
-| after build | every mapped test is green **and was recorded red by the test stage**; the architecture suite passes; the formatter passes |
+| after build | every mapped test is green **and was recorded red by the test stage**; the architecture suite passes; the formatter passes; every file the plan names `new` is there and every one it names `removed` is gone |
 | after tidy | the same checks again — the stage's whole claim is that nothing changed |
 | after document | every path and identifier the stage claims exists; every glossary row says how it was checked |
 
@@ -620,6 +623,8 @@ The judge returns exactly one of three verdicts, and the third is the reason thi
 - **pass** — the criteria are met and no confirmed defect blocks them.
 - **changes-requested** — confirmed defects go back to the build stage with their evidence. Count
   the rounds and stop at three: a loop that will not converge needs a human, not a fourth attempt.
+  A planned change left undone is such a defect whatever reason the build gives — ranked a minor, it
+  is recorded and delivered, and the plan quietly stops being what was built.
 - **story-conflict** — the story or the plan is wrong. This never goes back to the build stage. A
   correction that changes an agreed criterion must not happen silently; the story is the contract,
   and a human decides it.
