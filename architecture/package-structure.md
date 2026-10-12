@@ -194,6 +194,12 @@ checkout/
 A feature relieves *package pressure*. It is not evidence against splitting a context: when language, model or
 team ownership have diverged, split the context — grouping use cases does not resolve that.
 
+**A feature is a term before it is a package.** The people who own the context name it — it has a glossary entry of its
+own (`Type: Feature`), and where a project keeps a living spec of what holds, the feature groups that too, one folder
+per feature. The code may mirror it as `application/{feature}/`, and where it does, the package carries exactly the
+feature's name. A context names its features whether or not its code is grouped yet: the language comes first, the
+packages follow when the use cases have grown.
+
 ---
 
 ## Detailed Structure with All Subdivisions
