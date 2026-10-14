@@ -992,7 +992,10 @@ Adopting describes what the system does today, with evidence, and is how a brown
 backlog. A story with `status: adopted` is never built: its scenarios are mapped to tests that exist and
 are green, a test the adoption has to write itself is shown to work by a break — a minimal change to the
 production code, applied to a scratch copy, that turns exactly this test red — and a fresh judge confirms
-that each test asserts its scenario. Then the story is delivered like any other — `status: delivered`,
+that each test asserts its scenario. The domain the scenarios run through is adopted with them: the plan
+names the invariants of every domain type they exercise, and each rule gets a unit test of its own — an
+existing one, or one the adoption writes with its break — so adopted behaviour is held at the rule, not
+only at the browser. Then the story is delivered like any other — `status: delivered`,
 written by the gate; `adopted` was the input, "the code exists: check it, build nothing" — and a new story
 can depend on it. The same path proves a story a person delivered by hand.
 Two limits hold: green is weaker than red-then-green, which is why the judge reads every mapped test and a
