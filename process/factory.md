@@ -847,7 +847,18 @@ dependency while it waited does not resume until that dependency is delivered.
 **Delivered means on the main line, checked there.** A story is delivered when its code is on the main line,
 not when its last gate passed in the worktree. The main line is merged into the story, the story becomes one
 commit, and the gate runs once more on that tree before the main line moves. A story that passed against
-yesterday's main line has proven nothing about today's.
+yesterday's main line has proven nothing about today's. Where the main line moves while that gate runs — a
+person's commit, another story delivered — the story is merged again and checked again; a moved main line is a
+reason to repeat, not to stop.
+
+**A delivery is committed where it is delivered.** Delivering writes state on the main line: the story's status,
+the scenarios merged into the spec, the answers applied, the findings kept. That state is committed there with the
+story, and nothing else of the main checkout with it. The next story starts from the main line's commits; a
+delivered scenario that is only in a working tree is one the next story never sees, and asks about again.
+
+**What runs is shown as running.** The steps the factory takes itself — merging, the gate on the merged tree,
+the formatter — take as long as a stage and are journaled like one. A status that shows a story idle while the
+factory works on it invites a person to start it a second time.
 
 **A conflict is resolved, not chosen.** Where two stories changed the same lines, both changes hold: the main
 line's, which a person already accepted, and the story's on top of it. Taking one side to make the conflict
