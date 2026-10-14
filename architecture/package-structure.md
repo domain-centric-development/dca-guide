@@ -165,9 +165,12 @@ checkout/
    a port declares it.
 5. **The domain is organised by concept, not mirrored by feature.** Aggregates and value objects belong to the
    bounded context and may serve several features — a feature owns no aggregate.
-6. **Incoming adapters may mirror features *below* their protocol:** `adapter/incoming/web/{feature}`,
+6. **Incoming adapters mirror the features *below* their protocol:** `adapter/incoming/web/{feature}`,
    `adapter/incoming/event/{feature}`. The protocol segment stays first, so the adapter vocabulary and its rules
-   (`DCA-NAM-011`) keep working. Outgoing adapters stay organised by technology or partner.
+   (`DCA-NAM-011`) keep working. Once the application is grouped, the incoming adapter is cut the same way: one
+   controller serves the use cases of one feature, and a controller that drives the input ports of two features
+   is cut along them — it would otherwise grow with every use case of both. Outgoing adapters stay organised by
+   technology or partner.
 
    **Both sides name the counterpart — they differ in what the counterpart is.** Incoming, it is the channel the
    traffic arrives on: `web`, `api`, `event`, `mcp`. One segment per *client implementation*, so when a context

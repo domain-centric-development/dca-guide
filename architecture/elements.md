@@ -214,7 +214,11 @@ value's own state, and a read model that could not answer them would be no read 
 obtain or invoke a domain service, construct aggregates, entities or domain values, combine values from
 several sources into a new business fact, or trigger behaviour with side effects. When a page needs a fact the
 read model does not know — the tax contained in a subtotal, whether a checkout step may be opened — that fact
-is computed in the use case and delivered in the result. The result is too poor when an adapter has to import
+is computed in the use case and delivered in the result. A decision the domain makes about one aggregate for one
+input is asked through the query of that aggregate: the input is a field of that query, the use case invokes the
+domain service, and the result delivers the decision. A finder that only locates the aggregate — the active one,
+the caller's — answers *which*, not *whether*, and a use case of its own for the decision splits one question in
+two. The result is too poor when an adapter has to import
 a domain service to render: a page controller that has to decide whether a checkout step may be opened asks
 the query for that decision (the use case invokes the domain service and delivers a `StepAccess` value) and
 maps the answer to a route.
