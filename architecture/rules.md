@@ -283,12 +283,13 @@ including the assertion that an unsaved mutation is invisible to the next reader
 - Controller handles framework-specific concerns
 - One controller method per use case (preferred)
 - A state-changing use case is reached only by an unsafe HTTP method (`POST`, `PUT`, `DELETE`) — never by `GET`; links do not create sessions, orders or carts. Prefetching, crawlers and cross-site navigation would otherwise trigger the change
-- State a later request needs travels with that request or lives in a store every instance reads. A server
-  session is held by one instance, and behind a load balancer without sticky sessions the next request reaches
-  another one
-- A message for the page after a redirect travels in a cookie that is encrypted and signed. The cookie is
-  addressed to one page: only that page reads it, reading removes it, and a message for another page waits
-  until that page is shown or expires after a few minutes. It holds the code from the page's enum of the
+- Where the application runs as several instances behind a load balancer without sticky sessions, state a later
+  request needs travels with that request or lives in a store every instance reads. A server session is held by
+  one instance, and the next request reaches another one. Whether the application runs that way is the
+  project's operational decision; a single instance or sticky sessions keep the server session usable
+- In such an application a message for the page after a redirect travels in a cookie that is encrypted and
+  signed. The cookie is addressed to one page: only that page reads it, reading removes it, and a message for
+  another page waits until that page is shown or expires after a few minutes. It holds the code from the page's enum of the
   incoming adapter (code and text per value) and a number where the sentence names one — never the sentence. The
   page maps the code and ignores a code it does not know. The key comes from configuration and every instance
   shares it; a key generated per process makes the cookie unreadable on the next instance. A flash attribute
