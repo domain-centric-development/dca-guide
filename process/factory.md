@@ -458,6 +458,10 @@ without changing the result.
 does not deliver it: the main line is merged in, the story becomes one commit, and an integrate gate holds
 that tree to the tidy gate's checks once more before the main line takes it. Where git stops on a conflict,
 an integrate step resolves it in the story's worktree and writes `.dca-factory/runs/<story>/integrate.md`.
+A story that resumes after waiting takes the main line in the same way before its next stage. Where such a
+merge changes one of the story's own tests, the record of it failing is about the earlier version: the story
+goes back to its test stage, which records the merged test as it now is, before build and tidy run again —
+never as a question to a person.
 
 **The builder stages share one context, the judge never the builder's.** By default plan, test, build
 and tidy run one after another in a single context, each still writing its own file and each still
