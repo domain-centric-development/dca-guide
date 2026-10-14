@@ -324,7 +324,7 @@ including the assertion that an unsaved mutation is invisible to the next reader
 - Domain types don't leak to external world
 - A value an adapter publishes from an enum is spelled explicitly — a code per value on the enum or a mapping in
   the adapter — never derived from the member's name (`name()`, `toString()`, `ToString()`): renaming a member
-  is a refactoring inside the code and must not change what a client reads
+  is a refactoring inside the code and must not change what a client reads or what a store holds
 - External types don't leak to domain
 
 ## INFRASTRUCTURE LAYER RULES

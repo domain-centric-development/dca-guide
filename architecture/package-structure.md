@@ -168,8 +168,9 @@ checkout/
 6. **Incoming adapters mirror the features *below* their protocol:** `adapter/incoming/web/{feature}`,
    `adapter/incoming/event/{feature}`. The protocol segment stays first, so the adapter vocabulary and its rules
    (`DCA-NAM-011`) keep working. Once the application is grouped, the incoming adapter is cut the same way: one
-   controller serves the use cases of one feature, and a controller that drives the input ports of two features
-   is cut along them — it would otherwise grow with every use case of both. Outgoing adapters stay organised by
+   controller changes through the use cases of one feature, and a controller that drives the commands of two
+   features is cut along them — it would otherwise grow with every use case of both. Reading a neighbouring
+   feature's query (the session a step page belongs to) is no reason to cut. Outgoing adapters stay organised by
    technology or partner.
 
    **Both sides name the counterpart — they differ in what the counterpart is.** Incoming, it is the channel the
