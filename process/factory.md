@@ -816,7 +816,15 @@ changes: the files the later stages wrote describe work that came before, and a 
 them skips every stage in between. They stay as the record; they no longer say where the story
 stands. The last gate delivers only a story whose stages all ran, in order, in this pass, over a
 judge's pass and the story as it was planned — a document written for an earlier pass delivers
-nothing.
+nothing. A stage sent back that rightly changes nothing still ran in this pass: its file, left as it
+was, holds for it. A stage that did not run is never recorded after the ones that did, or the pass
+reads older than it is and every round is refused on a file nobody can make newer.
+
+**A stopped run leaves nothing open.** A run stopped from outside — a signal, an interrupt, a closed
+terminal — closes the stage it was in before it ends, and a run started at a stage the person names
+begins afresh. Between two runs the story is the person's: a criterion changed then is a story that
+changed after it was planned, and the story runs again from its plan — never a stage that wrote the
+story.
 
 **An answer that exists only in a reply is lost.** A scoping decision, an assumption the domain
 expert settled, a reason for a deviation: if it is not written where the next run will look, the
@@ -830,6 +838,12 @@ runs. What is state does not go with it: the story, its questions and answers, t
 main checkout and the worktree sees them through links. A question written on a branch is a question the
 inbox never shows, and an answer that lives on a branch is lost with it.
 
+**A story resumes on the main line as it is now.** A story that waited — for an answer, after a restart —
+is brought onto the main line before its next stage: moved where nothing of its own is in the way, merged
+where it is, a conflict resolved before the stage starts. Whatever was delivered while it waited is what
+the next stage builds on — a dependency added to the story meanwhile among it. And a story that gained a
+dependency while it waited does not resume until that dependency is delivered.
+
 **Delivered means on the main line, checked there.** A story is delivered when its code is on the main line,
 not when its last gate passed in the worktree. The main line is merged into the story, the story becomes one
 commit, and the gate runs once more on that tree before the main line moves. A story that passed against
@@ -837,7 +851,9 @@ yesterday's main line has proven nothing about today's.
 
 **A conflict is resolved, not chosen.** Where two stories changed the same lines, both changes hold: the main
 line's, which a person already accepted, and the story's on top of it. Taking one side to make the conflict
-go away delivers one story by removing another.
+go away delivers one story by removing another. What the project's formatter would correct in a
+resolution is corrected by the formatter before the merge is checked; a mechanical repair is not a
+round.
 
 ### One source, or two truths
 
@@ -858,6 +874,12 @@ believes it is in force. Keep the always-loaded file short and put the detail in
 points at.
 
 ### Where a run must stop
+
+**One stopped story need not stop the others.** Unattended, a run may set a stopped story aside, with
+every story that depends on it, and go on with what can start; it ends when nothing more can, and names
+what it set aside. A stop that concerns the whole run — another worker in the checkout, the run's own cap,
+the guard's stop marker — still ends it. Retrying the stopped story in the same run would spend it on the
+same refusal.
 
 **Three verdicts, not two.** Pass and "fix this" are not enough: the third case is that the *story*
 is wrong. That one must never go back to the builder, because a correction that silently changes an
