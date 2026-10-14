@@ -352,7 +352,9 @@ it changes nothing that holds, and a change of delivered behaviour is a new stor
 glossary stands beside its scenarios: the language of what holds, kept by the glossary work as before.
 
 Two questions, two places: *which stories are done, by whom?* — the stories' front matter; *what holds
-today?* — the spec. Two implementations of the same backlog end in the same spec, criterion by criterion.
+today?* — the spec. Two implementations of the same backlog end in the same spec, criterion by criterion, and in
+the same order: a rule's criteria stand as the story that delivered them last lists them, whichever of them arrived
+first.
 
 ## Ideation: which problem is worth solving
 
