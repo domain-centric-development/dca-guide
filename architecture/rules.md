@@ -289,6 +289,9 @@ including the assertion that an unsaved mutation is invisible to the next reader
   not know. A server session, a flash attribute (Spring MVC) or `TempData` (ASP.NET Core, without a
   data-protection key ring the instances share) is held by one instance, and behind a load balancer without
   sticky sessions the next request reaches another one
+- A page adapter translates a refusal in one place: one method of the adapter turns the refusal and its notice
+  code into the redirect, and every handler that can meet the refusal calls it — never the same `catch` in each
+  handler. A handler repeats only the use-case call; what a refusal looks like to the user is decided once
 - Every browser form that changes state carries a CSRF token; cookie-authenticated endpoints without one are a defect. Token-authenticated APIs (`Authorization: Bearer`) are exempt only if they neither read nor issue cookies
 
 ### Output Adapter Rules
