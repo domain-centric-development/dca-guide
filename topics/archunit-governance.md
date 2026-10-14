@@ -1484,6 +1484,25 @@ or ArchUnit's `archunit_ignore_patterns.txt`, and the baseline is `FreezingArchR
 **What none of the dials should be used for:** hiding a rule that is genuinely violated in new code.
 Every lowered rule carries a reason, and the reason is the thing worth reviewing.
 
+### Experimental rules
+
+A rule the library ships before it is reviewed is **experimental**: it keeps the id and the set it will
+have once released, and it does not run unless the project opts in.
+
+```java
+return DcaRuleSelection.all().withExperimental();   // in additionalSelection(); .NET: WithExperimental()
+```
+
+```properties
+dca.rules.experimental = true
+```
+
+Without the opt-in an experimental rule is listed as not run. With it, the rule runs like any other and
+the remaining dials apply to it. That is also where it binds: a reviewer or a coding agent treats an
+experimental rule as binding only in a project that opted in; elsewhere it is information — never a
+finding and never a reason to change code. Releasing the rule changes its maturity and nothing else, so a
+project that opted in keeps its configuration, and every exclusion or warning on that id stays valid.
+
 ---
 
 ## Best Practices
