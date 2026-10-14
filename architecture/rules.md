@@ -283,12 +283,19 @@ including the assertion that an unsaved mutation is invisible to the next reader
 - Controller handles framework-specific concerns
 - One controller method per use case (preferred)
 - A state-changing use case is reached only by an unsafe HTTP method (`POST`, `PUT`, `DELETE`) — never by `GET`; links do not create sessions, orders or carts. Prefetching, crawlers and cross-site navigation would otherwise trigger the change
-- State a later request needs travels with that request or lives in a store every instance reads. A message
-  for the page after a redirect is a fixed code in the redirect URL (`?notice=saved`), never the sentence: the
-  page maps the code through an enum of the incoming adapter (code and text per value) and ignores a code it does
-  not know. A server session, a flash attribute (Spring MVC) or `TempData` (ASP.NET Core, without a
-  data-protection key ring the instances share) is held by one instance, and behind a load balancer without
-  sticky sessions the next request reaches another one
+- State a later request needs travels with that request or lives in a store every instance reads. A server
+  session is held by one instance, and behind a load balancer without sticky sessions the next request reaches
+  another one
+- A message for the page after a redirect travels in a cookie that is encrypted and signed. The cookie is
+  addressed to one page: only that page reads it, reading removes it, and a message for another page waits
+  until that page is shown or expires after a few minutes. It holds the code from the page's enum of the
+  incoming adapter (code and text per value) and a number where the sentence names one — never the sentence. The
+  page maps the code and ignores a code it does not know. The key comes from configuration and every instance
+  shares it; a key generated per process makes the cookie unreadable on the next instance. A flash attribute
+  (Spring MVC) is kept in the server session by default and needs a flash-map manager that writes this cookie;
+  `TempData` (ASP.NET Core) is such a cookie by default and needs a data-protection key ring the instances share
+- Where no cookie may be set, the code travels in the redirect address (`?notice=saved`). The address is
+  forgeable — a crafted link shows any notice and any number — and every redirect on the way must forward it
 - A page adapter translates a refusal in one place: one method of the adapter turns the refusal and its notice
   code into the redirect, and every handler that can meet the refusal calls it — never the same `catch` in each
   handler. A handler repeats only the use-case call; what a refusal looks like to the user is decided once
