@@ -275,6 +275,9 @@ including the assertion that an unsaved mutation is invisible to the next reader
 - Input Adapter uses no infrastructure (`DCA-HEX-004`) — a capability the use case needs is declared as an Output Port there; the adapter may use the identity port to resolve the caller; its own mechanics stay inside the adapter
 - Controller extracts data from HTTP request
 - Controller creates Input Data/DTO
+- The adapter turns raw input into the types the input port takes: an id arrives in the command as the id's
+  value type, parsed at the edge (or by the value type's own factory), never as text the use case parses. Text
+  that does not parse is a malformed call the adapter answers itself; the use case never sees it
 - Controller delegates to use case
 - Controller is thin, no business logic
 - Controller handles framework-specific concerns
@@ -319,6 +322,9 @@ including the assertion that an unsaved mutation is invisible to the next reader
 - Adapters can be tested with integration tests
 - Adapters handle technical concerns
 - Domain types don't leak to external world
+- A value an adapter publishes from an enum is spelled explicitly — a code per value on the enum or a mapping in
+  the adapter — never derived from the member's name (`name()`, `toString()`, `ToString()`): renaming a member
+  is a refactoring inside the code and must not change what a client reads
 - External types don't leak to domain
 
 ## INFRASTRUCTURE LAYER RULES
