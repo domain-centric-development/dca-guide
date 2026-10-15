@@ -548,6 +548,12 @@ and still answers `404`, because what the caller has to do about it is ask for s
 starting point: `404` for something that is not there, `409` for a conflict with existing state, `422` for a
 rule that refused an understood request, `400` for a value the model does not accept at all.
 
+**`404` belongs to the addressed resource.** It answers a path that names nothing. A reference in the request
+body that parses but names nothing — an id posted to a resource that exists — answers `422`: the request was
+understood, and what it refers to does not exist. A `404` there would claim something false about the resource
+the path addresses, and the caller would look for the error in the wrong place. A reference that does not parse
+at all is a malformed call and answers `400`, before any use case runs.
+
 Page controllers of the same context catch the failures and render the page's own words into the form it came
 from — a text the page keeps per failure type, or a message key its translations resolve, filled with the
 failure's values. One use case, several protocols, one decision site each, and every sentence in the language
