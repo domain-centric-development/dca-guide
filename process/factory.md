@@ -106,7 +106,11 @@ that a person releases, and a new technical capability adds its line to the stac
 through the description skill or the step that owns the part, never through a build stage.
 
 Every step of the cycle leaves its state in files and answers a command — `status`, `decisions`, `discover
---list`, also as JSON. So any tool may draw the cycle; none has to.
+--list`, also as JSON. So any tool may draw the cycle; none has to. Every order a view shows is the factory's
+too — what comes next in the schedule's order, the backlog newest first by the `created:` each epic and story
+carries, the newest delivery first — so two views never sort the same backlog differently. The status a person
+asks for is short: what runs, what waits for them, what comes next and the totals; every story, one story or one
+epic only on request.
 
 ## The project description
 
@@ -816,7 +820,8 @@ integrate gate can go red in a test the story did not write, change or name — 
 timeout under load, an order the suite depends on. The gate runs that test once more, on its own.
 Green there, the gate passes, notes the test as flaky and counts no round; red again, the suite is
 red as before. A test of the story's own is never run again: its red proof has to stay exact. A test
-noted flaky in two stories becomes a finding, so it is fixed rather than run again for ever.
+noted flaky in two stories becomes a finding of the project's own — it belongs to neither story — so it is fixed
+rather than run again for ever.
 
 **Resume where the files say, and check them before a stage reads them.** A run started on one story
 begins at the state its files record, not at the first stage by default: a delivered story runs
