@@ -811,6 +811,13 @@ build tool missing on the gate's path — is named as the environment's and stop
 without counting. Counted as a round, it sends a stage three times against a wall it cannot move,
 and the story stops as if it had failed.
 
+**A test the story never touched is not the story's red.** A whole suite at the build, tidy or
+integrate gate can go red in a test the story did not write, change or name — a stub slower than its
+timeout under load, an order the suite depends on. The gate runs that test once more, on its own.
+Green there, the gate passes, notes the test as flaky and counts no round; red again, the suite is
+red as before. A test of the story's own is never run again: its red proof has to stay exact. A test
+noted flaky in two stories becomes a finding, so it is fixed rather than run again for ever.
+
 **Resume where the files say, and check them before a stage reads them.** A run started on one story
 begins at the state its files record, not at the first stage by default: a delivered story runs
 nothing, an accepted one only its last gate. Where the file of the stage it resumes at exists, the
