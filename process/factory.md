@@ -522,6 +522,13 @@ could fail: with the behaviour absent, it turns red. An assertion on a mechanism
 something nothing writes, an absence that held before the story began — each is green whatever the code does, and
 a judge that reads it as proof passes a criterion nobody tested.
 
+An invariant's unit test has to show that it guards its rule, too. Where the rule is new, its test is red
+before the build, and that run is the proof. Where the rule exists already, its test is green from the start and
+proves nothing by being green: the stage writes a **break** beside it — the smallest change to the production code
+that turns exactly that test red — and the gate applies every break to one scratch copy of the project, running
+only the test it is for. A test that stays green under its break does not guard the rule it names, and the gate
+refuses it.
+
 It adds only the stubs the test sources need to compile, and a stub **refuses to answer** — it
 throws rather than returning a value, even an empty one. A stub that returns the answer a criterion
 expects makes the test green before any code exists, and a green test at this point proves nothing.
