@@ -57,6 +57,11 @@ Domain-Centric Architecture synthesizes ideas from multiple foundational works a
 **Articles:**
 - **[The Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)** by Robert C. Martin (2012)
   - Original blog post introducing Clean Architecture circles
+- **[Composition Root](https://blog.ploeh.dk/2011/07/28/CompositionRoot/)** by Mark Seemann (2011)
+  - The one place where an application's objects are put together; only applications have one
+
+- **[Dependency Injection Principles, Practices, and Patterns](https://www.manning.com/books/dependency-injection-principles-practices-patterns)** by Mark Seemann and Steven van Deursen (2019)
+  - The composition root, and wiring by hand without a container (Pure DI)
 
 ## Onion Architecture
 
@@ -138,6 +143,12 @@ a deviation from Evans and Vernon.
 **Articles:**
 - **[Domain events: design and implementation](https://learn.microsoft.com/en-us/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/domain-events-design-implementation)** — Microsoft .NET microservices guidance
   - Where the line between a domain event and an integration event falls, and what each one may carry
+
+**Long-running processes:**
+- **[Sagas](https://www.cs.princeton.edu/research/techreps/598)** by Hector Garcia-Molina and Kenneth Salem (SIGMOD 1987)
+  - A long-lived transaction as steps that commit one by one, each with a compensating step
+- **[Process Manager](https://www.enterpriseintegrationpatterns.com/patterns/messaging/ProcessManager.html)** in *Enterprise Integration Patterns* by Gregor Hohpe and Bobby Woolf (2003)
+  - A central unit that keeps the state of a sequence and decides the next step
 
 ## Software Architecture Patterns
 

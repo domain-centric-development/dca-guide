@@ -356,6 +356,8 @@ including the assertion that an unsaved mutation is invisible to the next reader
 - Infrastructure decisions can be delayed
 - Infrastructure can be swapped
 - No business logic in infrastructure
+- The composition root wires and never decides: it creates the adapters, hands each use case its ports and holds no
+  rule (see [The composition root](./dependency-structure.md#the-composition-root))
 
 ## STRATEGIC DESIGN RULES
 
@@ -580,6 +582,27 @@ which channel its own failures take. What the base types change there is the `ca
 rule it converts (`catch (PasswordTooWeakException e)`) instead of a generic type that would also swallow a
 defect.
 
+### A stop is not a failure
+
+A run cancelled from outside — a shutdown signal, an interrupt, a deadline — is neither a broken rule nor a
+request the application cannot serve. It is a fourth case: **a stop passes through untranslated.**
+
+- Any port may raise it, when the work it waits for is cancelled.
+- No adapter translates it into a domain or use-case exception, and no use case catches it.
+- The entry point that owns the process or the request turns it into the end: an exit code, an aborted response,
+  a message left for redelivery.
+
+Both platforms model it so, and cooperatively — the work is asked to stop, never killed:
+
+- **.NET** hands a `CancellationToken` through every port call; a cancelled operation raises
+  `OperationCanceledException`.
+- **Java** signals a stop by interruption; a blocking call raises `InterruptedException`. Code that is not the
+  thread's owner never swallows it: it rethrows, or restores the flag with `Thread.currentThread().interrupt()`.
+
+A `catch` that turns a stop into a failure is the defect to look for in review: the request then answers with an
+error for something nobody did wrong, and a retry repeats work the owner wanted to end. A use case that must leave
+its state clean on a stop keeps its steps inside one transaction, which the stop rolls back.
+
 ### What the rules check
 
 | Id | Rule |
@@ -686,7 +709,7 @@ public class AddItemToCartUseCase implements AddItemToCartInputPort {
 
 Two rules of the DCA catalog make this a compile-time fact: `DCA-USE-012` — a use case that saves or deletes an aggregate through a `Repository`, or publishes domain events, has a transaction boundary — declarative `@Transactional` **or** an explicit `TransactionBoundary.inTransaction` (the repository may write one aggregate as several statements; the use case owns the unit of work even when no event is published); `DCA-USE-013` — a `@Transactional` use case calls no output port other than `Repository`, `Store`, `DomainEventPublisher`, `IntegrationEventPublisher` (`TransactionBoundary` is not a port; a use case that needs remote reads draws the explicit boundary instead of the annotation). In .NET the boundary is a decorator around `IUseCase<,>` or `ITransactionBoundary.InTransactionAsync`; `DCA-NET-006` keeps EF Core, `System.Data` and `System.Transactions` out of the application layer.
 
-**Note:** For complex multi-aggregate workflows, consider the **Saga pattern** (orchestration or choreography). This is an advanced topic beyond the scope of basic domain-centric architecture.
+A workflow across several aggregates or contexts that outlives one transaction is a process manager — a use case with a tracker — or, where steps are compensated, a saga (see [A process that spans several transactions](./integration-patterns.md#a-process-that-spans-several-transactions)).
 
 ## PACKAGING RULES
 
@@ -738,16 +761,81 @@ remaining domain-model types, so one type is never reported twice for metadata.
 Ordinary use cases do not invoke other use cases, whether directly, through an
 input port, or through an application helper. Shared collaborators that do not call
 operations remain valid. `DCA-USE-016` follows dependencies within the module's
-application layer and reports `Caller -> Target [via Helper]`. Explicit coordination
-uses a caller-side exception, for example
+application layer and reports `Caller -> Target [via Helper]`. A flow that needs a
+second operation gets it through an output port (see
+[A flow that needs a second operation](#a-flow-that-needs-a-second-operation)).
+
+Existing code that already chains use cases can be admitted one coordinator at a time
+while it moves there, with a caller-side exception, for example
 `dca.rule.DCA-USE-016.ignore=^com\.example\.module\.application\.coordinate\.CoordinatorUseCase -> `.
 This permits the coordinator to invoke operations; it does not permit an operation
 to invoke the coordinator, and `DCA-CYC-005` still detects coordination cycles,
 including two operations inside the same feature. No coordinator marker is implied.
-When a reliable exception cannot be expressed, use WARN with a recorded reason and
-review the coordinator's transaction boundaries and partial-failure semantics manually.
+The exception is a way out for existing code, not a second form for new code. When a
+reliable exception cannot be expressed, use WARN with a recorded reason and review the
+coordinator's transaction boundaries and partial-failure semantics manually.
 Reflection, container lookups and calls through interfaces outside the InputPort
 hierarchy also require manual review.
+
+### A flow that needs a second operation
+
+**A command from outside ends at a use case. A use case that needs a second operation asks its own output port for
+it.** How the second operation gets behind that port depends on how the flow runs:
+
+- **In the same process and the same transaction** — both steps succeed or fail together. The composition root
+  implements the first use case's output port with the second use case.
+- **Later, in a transaction of its own** — the second step may run after the first committed, and may be retried.
+  The first use case raises a domain event; a transactional listener drives the second use case (see
+  [Reacting to an event](./integration-patterns.md#reacting-to-an-event)).
+
+The synchronous case, in a context that applies a price list line by line through the existing `ChangePrice` use
+case. The first use case states what it needs, in its own words:
+
+```java
+// com/company/project/pricing/application/applypricelist/PriceSetter.java
+public interface PriceSetter extends OutputPort {
+    void setPrice(ProductId product, Money amount);
+}
+
+// com/company/project/pricing/application/applypricelist/ApplyPriceListUseCase.java
+@Service
+@Transactional
+public class ApplyPriceListUseCase implements ApplyPriceListInputPort {
+
+    private final PriceSetter prices;                   // its own port — it does not know ChangePrice
+
+    @Override
+    public ApplyPriceListResult execute(ApplyPriceListCommand command) {
+        for (var line : command.lines()) {              // the decisions: which lines, in which order
+            prices.setPrice(line.productId(), line.amount());
+        }
+        return new ApplyPriceListResult(command.lines().size());
+    }
+}
+```
+
+The composition root puts the second use case behind that port:
+
+```java
+// com/company/project/pricing/infrastructure/PricingConfiguration.java
+@Configuration
+class PricingConfiguration {
+
+    @Bean
+    PriceSetter priceSetter(ChangePriceInputPort changePrice) {
+        return (product, amount) -> changePrice.execute(new ChangePriceCommand(product, amount));
+    }
+}
+```
+
+Each part does one thing. `ApplyPriceListUseCase` decides and is tested against a fake `PriceSetter`.
+`ChangePriceUseCase` stays as it is and knows nothing of price lists. The composition root translates a call into a
+command and decides nothing. With `@Transactional` on both, the inner call joins the outer transaction: a failure on
+the fiftieth line rolls back the whole list.
+
+The lambda lives in `infrastructure/`, never in `adapter/outgoing/`: an outgoing adapter must not depend on an input
+port (`DCA-HEX-013`). An incoming adapter that calls two use cases in a row is no alternative either. It makes the
+order of the steps a decision of the adapter, and no use-case test sees it.
 
 The input port describes the complete effective public instance surface (`DCA-USE-017`).
 Declared and inherited business methods, unrelated-interface methods and public
