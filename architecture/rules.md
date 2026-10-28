@@ -76,7 +76,12 @@
 - Domain Events enable eventual consistency within bounded context
 - Domain Events emitted by aggregates during state changes
 - Domain Events published by use cases via DomainEventPublisher (Output Port)
-- Domain Events handled asynchronously when crossing aggregates
+- Domain Events handled asynchronously when crossing aggregates: a listener that drives an input port is a
+  transactional listener — after the commit, in its own transaction, from a durably captured publication
+  ([Reacting to an event](integration-patterns.md#reacting-to-an-event))
+- A synchronous listener runs in the publishing transaction and calls output ports only (the translator,
+  a metrics port)
+- A stored domain event is read by the next deployment: tolerant reading, two-step renames, no version number
 - Domain Events must not contain behavior, only data
 - Domain Events belong to the domain layer, not adapters
 

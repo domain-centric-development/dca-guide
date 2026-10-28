@@ -202,9 +202,9 @@ Use case folders are lowercase in Java (`placeorder`) because Java packages are;
 | Configuration per context | `@Configuration` class in `{context}/infrastructure/` | extension method `Add{Context}Context()` called by the composition root |
 | Module verification | Spring Modulith `ApplicationModules.verify()` | project references (a context cannot reference another's internals) + the `DCA-STR` / `DCA-CYC` rules |
 | Transaction boundary | `@Transactional` on the use case, or `TransactionBoundary.inTransaction(...)` (`DCA-USE-012`) | `ITransactionBoundary.InTransactionAsync(...)` or a decorator around `IUseCase` — no attribute; `DCA-USE-012` checks that every entry path to a saving, deleting or publishing method passes through the boundary call (`DCA-USE-013` is not applicable) |
-| Domain event dispatch | `ApplicationEventPublisher`; `@ApplicationModuleListener` / `@TransactionalEventListener(AFTER_COMMIT)` | in-process dispatcher behind `IDomainEventPublisher`; consumers subscribe explicitly |
+| Domain event dispatch | `ApplicationEventPublisher` behind `DomainEventPublisher`; synchronous listener `@EventListener`, transactional listener `@ApplicationModuleListener` (registry) | dispatcher behind `IDomainEventPublisher`; synchronous listeners run in the transaction, transactional listeners are delivered from an outbox after the commit; consumers subscribe explicitly |
 | Integration events | Modulith event publication registry, or outbox | outbox table / `Channel<T>` queue drained after commit, with retry |
-| Event consumer | `@ApplicationModuleListener void on(OrderCompletedEvent e)` | `*EventConsumer` class registered as a subscriber; async |
+| Event consumer | `@ApplicationModuleListener void on(OrderCompletedEvent e)` | `*EventConsumer` class registered as a transactional listener; delivered after the commit from the outbox |
 | Web adapter | `@Controller` `*PageController`, `@RestController` `*Resource` | MVC `*PageController : Controller`, `[ApiController]` `*Resource` / `*Controller` |
 | Security context | `SecurityContextHolder` behind an `IdentityProvider` port | `HttpContext.User` behind an `IIdentityProvider` port; own `AuthenticationHandler` |
 | Validation | Bean Validation on commands at the adapter edge | DataAnnotations / FluentValidation at the adapter edge |

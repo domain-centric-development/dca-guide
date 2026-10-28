@@ -216,6 +216,9 @@ Spring Modulith provides an **Event Publication Registry** that ensures reliable
 - **Resubmission, not automatic retry**: an incomplete publication stays in the registry and is replayed
   when you ask for it — on restart with `republish-outstanding-events-on-restart`, or through the 2.0
   resubmission API. Nothing retries on its own
+- **Staleness monitor, off by default**: a publication left in published or processing by a crash or a hung
+  listener stays there until `spring.modulith.events.staleness.*` marks it failed after a threshold. Without
+  that setting a resubmission that selects failed publications never sees it
 - **Idempotency Support**: Handlers can be idempotent via event IDs
 - **Observability**: Track event processing status and failures
 
@@ -313,8 +316,12 @@ class InventoryEventListener {
 ```
 
 **Key Points:**
-- `@ApplicationModuleListener` enables async processing in new transaction
+- `@ApplicationModuleListener` enables async processing in new transaction — the transactional listener kind of
+  [Reacting to an event](../architecture/integration-patterns.md#reacting-to-an-event). The same annotation serves a
+  reaction to this module's own domain event
 - `Propagation.REQUIRES_NEW` ensures independent transaction
+- A translator that captures an integration event stays a plain `@EventListener`: it runs inside the publishing
+  transaction and calls only an output port
 - A failure leaves the publication incomplete in the registry; replaying it is opt-in (see the registry section)
 - Anti-Corruption Layer protects consuming module's domain
 
@@ -1195,7 +1202,7 @@ transport and storage are separate adapters. Schema versions belong in integrati
 `DCA-ADV-006/007` use a name heuristic for `schemaVersion`, `eventVersion`, `contractVersion`; a business `version` is allowed.
 
 **What that segment is, and what it is not.** The outgoing messaging segment is the *publishing* side
-of this context's own contracts: the translator, the relay that drains the publication store, the
+of this context's own contracts: the translator, the relay that drains the outbox, the
 transport client. It is not a bucket for everything with "event" in the name.
 
 A subscriber that forwards a fact to an external system is not part of it, and is not one package at
@@ -1217,8 +1224,9 @@ module's own, and an outgoing adapter may use both (`DCA-HEX-005`).
 An in-process registry may deliver domain events within a context **or integration events between contexts**.
 Process location does not determine event classification. Synchronous delivery is atomic only for local resources
 participating in the same transaction; a synchronous remote effect cannot be rolled back with the aggregate.
-For an external effect, either (A) an own-context async consumer receives a durably captured domain fact, or
-(B) an own-context synchronous translator captures an integration contract consumed asynchronously. Cross-context
+For an external effect, either (A) an own-context transactional listener receives a durably captured domain fact, or
+(B) an own-context synchronous translator captures an integration contract consumed asynchronously — the two listener
+kinds of [Reacting to an event](../architecture/integration-patterns.md#reacting-to-an-event). Cross-context
 consumers always use the integration contract. No broker is required to cross a context boundary.
 
 Capture the publication in the aggregate transaction; establish delivery eligibility with commit, then wake the
