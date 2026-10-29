@@ -242,6 +242,11 @@ content, no rule. A lambda that turns one port's call into another use case's co
 needs a condition, the condition is a decision, and a decision belongs to a use case. A composition root that
 decides hides behaviour where no use-case test looks for it.
 
+**The composition root implements no port.** Every implementation of an output port is an outgoing adapter and lives
+in `adapter/outgoing/`; the root refers to it and wires it (`DCA-HEX-019`). The one exception is the bridge to a
+second use case — a lambda in Java, a small forwarding class in C# — because it connects two ports of the application
+and belongs to neither adapter side.
+
 Only an application has a composition root. A library ships ports and building blocks and leaves the wiring to the
 application that uses it.
 

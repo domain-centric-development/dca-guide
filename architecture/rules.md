@@ -40,6 +40,13 @@
   different checks — validated and derived on the way in, taken as given on the way back — and each has its own
   named factory (`fromInput(...)`, `fromStored(...)`). A neutral `of(...)` beside them leaves the caller to guess
   which checks run. A value with one origin keeps its one factory
+- **A string, a number, a flag or a moment that means something is a value object.** A postal code, a quantity, a
+  status, an opening date each carry rules of their own — a format, a range, a meaning — and held as a bare
+  `String`, `int`, `boolean` or `Instant` those rules are repeated at every use, or missing. A value of several
+  components holds values too: an address holds a `Street`, a `PostalCode` and a `City`, not three strings. Only a
+  wrapper — a value of exactly one component — holds the primitive it wraps. A flag kept in a field is an enum or a
+  value; a `boolean` *returned* is a question to the object and fine, though an aggregate is told what to do rather
+  than asked and then decided about from outside (`DCA-TAC-025`, experimental)
 
 ### Aggregate Rules
 - Access external objects only through Aggregate Root
@@ -834,7 +841,9 @@ command and decides nothing. With `@Transactional` on both, the inner call joins
 the fiftieth line rolls back the whole list.
 
 The lambda lives in `infrastructure/`, never in `adapter/outgoing/`: an outgoing adapter must not depend on an input
-port (`DCA-HEX-013`). An incoming adapter that calls two use cases in a row is no alternative either. It makes the
+port (`DCA-HEX-013`). C# cannot implement an interface with a lambda; there the bridge is a small class in the
+context's `Infrastructure/` that only forwards to the input port. It is the one implementation of an output port
+outside the outgoing adapters — every other one lives there (`DCA-HEX-019`, experimental). An incoming adapter that calls two use cases in a row is no alternative either. It makes the
 order of the steps a decision of the adapter, and no use-case test sees it.
 
 The input port describes the complete effective public instance surface (`DCA-USE-017`).
