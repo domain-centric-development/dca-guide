@@ -170,11 +170,31 @@ nothing. `withRole("aggregateRoot", "...")` sets a role by name where the code i
 than written. A role names exactly one type and must not be blank: an empty role would select nothing
 and report success, which is the failure mode these rules exist to prevent. Selection is by
 assignability, so the marker may be an interface or a base class. Two vocabularies at once are
-outside this — during a migration the role names the one the rules should follow. The strategic
-annotations (`@BoundedContext`, `@Upstream` and their siblings) are deliberately not roles, because
-the rules read their members and a type name carries none. The test report names the vocabulary in
-use — `building block markers: dca (library default)`, or the name and the roles that differ — so a
-wrong vocabulary is visible instead of silently selecting nothing.
+outside this — during a migration the role names the one the rules should follow. The test report
+names the vocabulary in use — `building block markers: dca (library default)`, or the name and the
+roles that differ — so a wrong vocabulary is visible instead of silently selecting nothing.
+
+Three roles name annotations rather than supertypes: `boundedContext` and `sharedKernel` on a
+`package-info`, `integrationEventType` on an integration event. A project's own `@BoundedContext(name,
+description)` serves like the library's; the rules read its members by name from the compiled class,
+so `CLASS` retention is enough, and a member the rules need and the annotation lacks is reported with
+package and member. When no package declares a shared kernel, `{base}.sharedkernel` (the configured
+sub-package) is taken as one. The relationship annotations (`@Upstream`, `@ExternalUpstream`,
+`@Partnership`, `@OpenHostService`) stay the library's: the rules read their nested values.
+
+A few conventions are settings of the layout, so a code base that chose differently says so once
+instead of switching rules off:
+
+```java
+DcaLayout.forBasePackage("com.company.project")
+    .withExcludedPackages("com.company.project.boot")   // a start-up module named like a layer
+    .withInputPortSuffix("UseCase")                      // DCA-NAM-003: interfaces named *UseCase
+    .withLocalOutputPorts("com.company.project.platform.LocalPort"); // DCA-USE-013: never remote
+```
+
+A local output port is one that never leaves the process — a hasher, a clock, a metrics port — so a
+use case may call it inside its transaction; selection is by assignability, so one own supertype
+covers them all.
 
 Usually you name no preset at all: `DcaLayout.forBasePackage` detects the framework on the test class
 path and picks the matching preset — Spring when it finds nothing — and the test report names the

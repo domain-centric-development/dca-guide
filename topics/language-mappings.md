@@ -245,6 +245,8 @@ ships ASP.NET Core (default) and none. A Jakarta or Quarkus project therefore re
 | Base class | `DcaArchitectureTest` (JUnit 5, dynamic tests) | `DcaArchitectureTest` (xUnit, one theory case per rule) |
 | Layout | `DcaLayout.forBasePackage("com.company.project")` | `DcaLayout.ForRootNamespace("Company.Project")` |
 | Layout options | `withIncomingSubpackage`, `withUseCaseSuffix`, `withControllerSuffix`, `allowingInDomain`, `withFrameworkAnnotations` (presets `spring`, `jakarta`, `quarkus`, `micronaut`, `none`) | `WithIncomingSegment`, `WithUseCaseSuffix`, `WithRestControllerSuffix`, `AllowingInDomain`, `WithFrameworkTypes` (presets `AspNetCore`, `None`) |
+| Own vocabulary | `withMarkers(DcaMarkers…)`; annotation roles `withBoundedContext`, `withSharedKernel`, `withIntegrationEventType` on `package-info` | `WithMarkers(DcaMarkers…)`; attribute roles `BoundedContext`, `SharedKernel`, `IntegrationEventType` on the context marker class |
+| Own conventions | `withExcludedPackages`, `withInputPortSuffix`, `withLocalOutputPorts` | `WithExcludedNamespaces`, `WithInputPortSuffix` (the `I` prefix stays), `WithLocalOutputPorts` |
 | Selection | `additionalSelection()` → `DcaRuleSelection` | `AdditionalSelection` → `DcaRuleSelection` |
 | Experimental rules | off; opt in with `withExperimental()` or `dca.rules.experimental = true` | off; opt in with `WithExperimental()` or `dca.rules.experimental = true` |
 | Properties file | `dca-archunit.properties` on the test class path | `dca-archunit.properties` next to the test assembly (copy to output) |
