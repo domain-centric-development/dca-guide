@@ -206,7 +206,9 @@ DcaLayout.forBasePackage("com.company.project")
 An annotation on a `package-info` holds for the whole package tree below it; one on a single class
 places that class, wherever it sits. The annotation wins over the path, and the report lists every
 package where it overrides one, and every package that declares another layer than a package above
-it — one layer per subtree. The library ships no annotations of its own for layers or roles; it
+it — one layer per subtree. In .NET the attribute sits on the type, as an assembly attribute that
+names a namespace (it holds for that namespace and the ones below), or on the whole assembly; the
+type's own wins, then the named namespace, then the assembly, then the path. The library ships no annotations of its own for layers or roles; it
 reads the ones a project has. Which kind fits which: a layer by package or annotation, a building
 block by supertype or annotation, a command and a query also by name. `DCA-LAY-007` (experimental)
 lists the classes of a module that sit in no layer — a mapper beside the adapter packages, a class
