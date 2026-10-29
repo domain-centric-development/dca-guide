@@ -44,9 +44,12 @@
   status, an opening date each carry rules of their own — a format, a range, a meaning — and held as a bare
   `String`, `int`, `boolean` or `Instant` those rules are repeated at every use, or missing. A value of several
   components holds values too: an address holds a `Street`, a `PostalCode` and a `City`, not three strings. Only a
-  wrapper — a value of exactly one component — holds the primitive it wraps. A flag kept in a field is an enum or a
-  value; a `boolean` *returned* is a question to the object and fine, though an aggregate is told what to do rather
-  than asked and then decided about from outside (`DCA-TAC-025`, experimental)
+  wrapper — a value of exactly one component — holds the primitive it wraps. An identifier is a typed id, never a
+  bare `UUID`: the type says whose it is. A flag kept in a field is an enum or a value; a `boolean` *returned* is a
+  question to the object and fine, though an aggregate is told what to do rather than asked and then decided about
+  from outside. What a building block prescribes keeps its type: a domain event's `occurredOn()` and `eventId()`
+  describe the event, not the domain, and carry no rules of their own — a business moment such as an opening date or
+  a date of birth does, and is a value (`DCA-TAC-025`, experimental)
 
 ### Aggregate Rules
 - Access external objects only through Aggregate Root
