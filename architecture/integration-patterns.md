@@ -549,7 +549,9 @@ Every listener is one of two kinds. The kind decides what it may call.
 
 **A listener that drives an input port is a transactional listener.** A synchronous listener that drives a use case
 changes a second aggregate inside the first one's transaction. The boundary of both aggregates is gone, a failure in
-the reaction rolls back the fact that caused it, and the reaction runs again on every retry of the request.
+the reaction rolls back the fact that caused it, and the reaction runs again on every retry of the request. `DCA-HEX-017`
+(experimental) checks it: a listener that calls an input port is of the transactional kind and runs in a transaction.
+It reads the listener's kind, not whether an outbox backs it.
 
 Between the two sits an after-commit callback without an outbox: Spring's
 `@TransactionalEventListener(AFTER_COMMIT)` on its own, or a hook registered on the commit. It runs after the commit,
