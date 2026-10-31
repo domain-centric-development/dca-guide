@@ -480,6 +480,17 @@ a context of its own, because a review by the context that wrote the code is the
 gates exist to replace; the document stage may follow it in that context, since it writes no code. A
 project that wants one context per stage says so once, and every run starts them separately.
 
+**A stage works from its brief, and its file says which.** What a stage is told is not a prompt somebody
+wrote once and tuned since. Every instruction is a rule of its own, with an id, the stages and the kinds of
+story it holds for and its words; a frame per stage places the rules among the text around them — the file's
+form, the examples — and one frame holds what every stage is told. For one story and one stage, the factory
+puts these together into the stage's brief: the rules that hold for that story's kind and no others, the gate
+rules the stage will be measured by, the skills it loads for its craft. The same story and stage give the same
+brief, so a run can be repeated and two runs compared. The stage's file begins with the brief's digest, and the
+gate after the stage refuses a file that names another brief or none: what a stage was told and what it did are
+then one record, not two that may differ. What a stage hears and what its gate checks stand in one rulebook,
+side by side, so where the two say different things, it shows.
+
 **A running stage can be followed.** Every stage writes its tool's output as it happens, one event per
 line, so a person sees which files a stage reads and writes and which commands it runs while it runs —
 not only the hand-over file at its end. A stage runs without a person to grant a permission: a command its
