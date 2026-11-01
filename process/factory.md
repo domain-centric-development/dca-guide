@@ -653,24 +653,24 @@ flowchart LR
   gate_after_build --> tidy
   tidy --> gate_after_tidy
   gate_after_tidy --> judge
-  judge -- "RUN-VERDICT-1" --> document
+  judge -- "The judge decides whether a story goes on" --> document
   document --> gate_after_document
   gate_after_document --> integrate
   integrate --> gate_after_integrate
   gate_after_integrate --> delivered
   plan -. "again" .-> plan
   gate_after_test -. "again · 20 checks" .-> test
-  build -. "GATE-RED-PROOF · RUN-ROUTE-5 · RUN-BACK-1" .-> test
+  build -. "A green test is the version that was seen red<br>A changed test is recorded red again before building<br>A test that cannot pass goes back to the test stage" .-> test
   gate_after_build -. "again · 14 checks" .-> build
-  tidy -. "GATE-RED-PROOF · RUN-ROUTE-5" .-> test
+  tidy -. "A green test is the version that was seen red<br>A changed test is recorded red again before building" .-> test
   gate_after_tidy -. "again · 14 checks" .-> tidy
   judge -. "again" .-> judge
-  judge -. "RUN-VERDICT-1" .-> build
-  judge -. "RUN-VERDICT-1" .-> test
+  judge -. "The judge decides whether a story goes on" .-> build
+  judge -. "The judge decides whether a story goes on" .-> test
   gate_after_document -. "again · 10 checks" .-> document
-  document -. "GATE-ACCEPTANCE" .-> plan
+  document -. "A story waits for a person's acceptance before it counts as delivered" .-> plan
   gate_after_integrate -. "again · 14 checks" .-> integrate
-  integrate -. "RUN-INTEGRATE-1" .-> build
+  integrate -. "A story reaches the main line through the integrate gate" .-> build
   classDef step fill:none,stroke:none,font-weight:bold
   classDef gate fill:#148f96,stroke:#148f96,color:#ffffff
   classDef done fill:none,stroke:#1c2433
@@ -679,8 +679,8 @@ flowchart LR
 A refused gate sends the story back into the stage it follows — a round. Three rounds without convergence stop the
 story, and a person looks. Some outcomes send it further back: a test changed since it was recorded red goes back to
 the test stage, the judge's requested changes go to build or to test, a correction from the acceptance starts over at
-plan, a refusal on the main line goes back to build. Each label is the id of the rule that decides the way; the
-factory's rulebook says when it applies, how it comes out and why.
+plan, a refusal on the main line goes back to build. Each label names the rule that decides the way; the factory's
+rulebook says when it applies, how it comes out and why.
 
 ## What the project declares
 
