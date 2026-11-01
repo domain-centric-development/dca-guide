@@ -28,6 +28,12 @@
 - Replace entire Value Object instead of modifying
 - Value Objects can be shared freely
 - Value Objects validate themselves; state the numeric range and rounding of every monetary value object. Reconstitution, deserialisation and default struct construction must not bypass invalid-state checks.
+- **A rule is checked once — in the value object.** A value object built from input refuses everything its rule
+  refuses, null included, with the rule's named failure. The incoming adapter hands it the raw value and does not
+  check the rule again: no annotation that repeats it, no default that turns an absent value into an empty one.
+  A second copy at the edge drifts from the first, and when the rule changes — null becomes valid, the limit grows —
+  two places change instead of one. Bean Validation or DataAnnotations belong only where no value object carries the
+  rule
 - Side-effect-free methods only
 - A value from a fixed set — a role, a status, a kind — is a type whose instances are the set. An enum when the
   members are names and nothing more; a value object with one instance per member as soon as a member carries data
@@ -297,6 +303,11 @@ including the assertion that an unsaved mutation is invisible to the next reader
 - The adapter turns raw input into the types the input port takes: an id arrives in the command as the id's
   value type, parsed at the edge (or by the value type's own factory), never as text the use case parses. Text
   that does not parse is a malformed call the adapter answers itself; the use case never sees it
+- The adapter checks the shape of the input, never a rule a value object carries. Shape is what the protocol
+  decides: is the body JSON, does a number or an id parse, is a path segment there. A rule is what a domain expert
+  could change: length, blank, range, a format with a meaning. A field the request leaves out reaches the value
+  object as absent — `@RequestParam(required = false)` without a `defaultValue`, a nullable property — and is refused
+  there; the adapter answers that refusal at the context's translation site like any other
 - Controller delegates to use case
 - Controller is thin, no business logic
 - Controller handles framework-specific concerns
@@ -459,8 +470,16 @@ Every failure carries its own type, and only the adapter turns it into an answer
   the use case that raises it: `OrderNotFoundException`, `DuplicateSkuException`,
   `PaymentProviderUnavailableException`. Not found, not the caller's, a precondition on a second aggregate,
   a uniqueness rule only the store can see.
-- **A malformed call** stays the platform's own argument exception. A null check or a range check in a value
-  object states what a caller must never pass. That is a programming-error contract, not a business rule.
+- **A malformed call** stays the platform's own argument exception. A null check or a range check on a value
+  one piece of code hands another states what a caller must never pass. That is a programming-error contract,
+  not a business rule.
+
+**The origin decides.** The same check means two things depending on where the value comes from. A value that
+only code passes — an amount computed inside the model, a reference the use case holds — fails by a defect in
+the caller, and an argument exception says so. A value built from input — a title typed into a form, a quantity
+in a request — fails by an ordinary request, and its bounds are the rule the product names (a title of 1 to 200
+characters). Such a value object refuses everything the rule refuses with the rule's named failure, a missing
+value included: an absent title is refused like an empty one, not with an NPE and not with a `requireNonNull`.
 
 Both base types come from the building blocks (`ddd.tactical.DomainException`,
 `application.UseCaseException`) and are abstract with a message and a cause. Neither carries a code, a status
@@ -468,7 +487,8 @@ or an annotation.
 
 **The cut: would a domain expert have a word for this failure?** `InsufficientStock`, `CartAlreadyCompleted`,
 `PasswordTooWeak` — yes, so each is a domain exception with that word in its name. "Must not be null", "must
-be positive", "must not exceed 255 characters" — no, so those stay `IllegalArgumentException`.
+be positive", "must not exceed 255 characters" on a value only code passes — no, so those stay
+`IllegalArgumentException`. On a value built from input the expert has the word: the title is invalid.
 
 **The name is the broken rule, in the domain's words; the suffix is the project's.** `InsufficientStock`
 says what the domain refuses; `InvalidInput` or `ValidationError` says only that something failed. The

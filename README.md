@@ -130,7 +130,7 @@ The restriction is deliberately asymmetric. An incoming adapter reads and format
 
 The literature has no settled answer here. Evans and Vernon discuss invariant enforcement without naming an exception model, and Clean Architecture leaves error transport to the interface adapters. DCA fixes three layers: `DomainException` for a broken business rule of the model, `UseCaseException` for a request the use case cannot serve, and translation to a protocol answer in the incoming adapter. Neither base type carries a code or a status — which status a failure earns is the adapter's decision, and the same failure may earn different ones at different edges.
 
-Argument guards keep the platform's own exceptions. A null check or a range check is not a domain statement, and wrapping it in a domain type would make the vocabulary say less, not more.
+Argument guards keep the platform's own exceptions. A null check or a range check on a value only code passes is not a domain statement, and wrapping it in a domain type would make the vocabulary say less, not more. A value built from input is the other case: its bounds are the rule the product names, and the value object refuses a missing value with that rule's failure — checked there once, not again at the adapter.
 
 This is DCA's own, enforced by `DCA-ERR-001` … `DCA-ERR-006`. The word is `UseCaseException` in both stacks, because the .NET platform occupies `ApplicationException` and discourages deriving from it.
 

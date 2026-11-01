@@ -83,4 +83,5 @@ Shared kernel  | its domain: never       | @Nullable, own annotations
 - [ ] Can the domain and the application layer be tested without a framework?
 - [ ] Does each business rule refuse with its own named failure, and each argument guard with the platform's argument exception?
 - [ ] Does exactly one place per context turn a failure into a protocol answer?
+- [ ] Is each rule on input checked once, in its value object — a missing value refused there too, no annotation or default repeating it at the adapter?
 - [ ] Are the words a person reads the adapter's, made from the failure's values — never the exception's message?

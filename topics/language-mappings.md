@@ -209,7 +209,7 @@ Use case folders are lowercase in Java (`placeorder`) because Java packages are;
 | Event consumer | `@ApplicationModuleListener void on(OrderCompletedEvent e)` | `*EventConsumer` class registered as a transactional listener; delivered after the commit from the outbox |
 | Web adapter | `@Controller` `*PageController`, `@RestController` `*Resource` | MVC `*PageController : Controller`, `[ApiController]` `*Resource` / `*Controller` |
 | Security context | `SecurityContextHolder` behind an `IdentityProvider` port | `HttpContext.User` behind an `IIdentityProvider` port; own `AuthenticationHandler` |
-| Validation | Bean Validation on commands at the adapter edge | DataAnnotations / FluentValidation at the adapter edge |
+| Validation | the value object at creation, null included; Bean Validation at the adapter edge only for a rule no value object carries | the value object at creation, null included; DataAnnotations / FluentValidation at the adapter edge only for a rule no value object carries |
 | Persistence (in-memory phase) | `ConcurrentHashMap` repository | `ConcurrentDictionary` repository |
 | Persistence (SQL) | JPA/JDBC in `adapter/outgoing/persistence/` | EF Core / Dapper in `Adapter/Outgoing/Persistence/` |
 | Build / test | Gradle, JUnit 5 | `dotnet build` / `dotnet test`, xUnit |
