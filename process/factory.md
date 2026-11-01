@@ -626,6 +626,62 @@ project's own compile, test, architecture and format commands is the boundary th
 everyone. Keep it to what a developer will wait for; a check that takes minutes gets bypassed, and
 then it guards nothing.
 
+### Where a refusal sends the story
+
+<!-- generated from the factory's rulebook, the flow of a story as its rules say it; regenerate it, never edit it -->
+```mermaid
+flowchart LR
+  gate_before_plan(("✓")):::gate
+  plan["plan"]:::step
+  test["test"]:::step
+  gate_after_test(("✓")):::gate
+  build["build"]:::step
+  gate_after_build(("✓")):::gate
+  tidy["tidy"]:::step
+  gate_after_tidy(("✓")):::gate
+  judge["judge"]:::step
+  document["document"]:::step
+  gate_after_document(("✓")):::gate
+  integrate["integrate"]:::step
+  gate_after_integrate(("✓")):::gate
+  delivered(("delivered")):::done
+  gate_before_plan --> plan
+  plan --> test
+  test --> gate_after_test
+  gate_after_test --> build
+  build --> gate_after_build
+  gate_after_build --> tidy
+  tidy --> gate_after_tidy
+  gate_after_tidy --> judge
+  judge -- "RUN-VERDICT-1" --> document
+  document --> gate_after_document
+  gate_after_document --> integrate
+  integrate --> gate_after_integrate
+  gate_after_integrate --> delivered
+  plan -. "again" .-> plan
+  gate_after_test -. "again · 20 checks" .-> test
+  build -. "GATE-RED-PROOF · RUN-ROUTE-5 · RUN-BACK-1" .-> test
+  gate_after_build -. "again · 14 checks" .-> build
+  tidy -. "GATE-RED-PROOF · RUN-ROUTE-5" .-> test
+  gate_after_tidy -. "again · 14 checks" .-> tidy
+  judge -. "again" .-> judge
+  judge -. "RUN-VERDICT-1" .-> build
+  judge -. "RUN-VERDICT-1" .-> test
+  gate_after_document -. "again · 10 checks" .-> document
+  document -. "GATE-ACCEPTANCE" .-> plan
+  gate_after_integrate -. "again · 14 checks" .-> integrate
+  integrate -. "RUN-INTEGRATE-1" .-> build
+  classDef step fill:none,stroke:none,font-weight:bold
+  classDef gate fill:#148f96,stroke:#148f96,color:#ffffff
+  classDef done fill:none,stroke:#1c2433
+```
+
+A refused gate sends the story back into the stage it follows — a round. Three rounds without convergence stop the
+story, and a person looks. Some outcomes send it further back: a test changed since it was recorded red goes back to
+the test stage, the judge's requested changes go to build or to test, a correction from the acceptance starts over at
+plan, a refusal on the main line goes back to build. Each label is the id of the rule that decides the way; the
+factory's rulebook says when it applies, how it comes out and why.
+
 ## What the project declares
 
 Nothing above knows how your project builds. That knowledge lives in one file the project owns —
