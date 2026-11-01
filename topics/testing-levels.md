@@ -85,6 +85,12 @@ A scenario's test is the one whose shape observes its `Then`: a business outcome
 status only the page or the API shows goes to that adapter's test, with the stubbed port answering the outcome.
 The happy path's end-to-end test is what proves the two fit together.
 
+A refusal the page shows needs both: the port test proves the use case refuses, and with which failure; the adapter
+test proves the text, its stub throwing that same failure. The failure type is where the two tests meet. The stub
+throws the very type the port test asserts — never a parent, never a generic one — so a renamed failure, or a use
+case that starts to throw another, turns the port test red instead of leaving the page answering a refusal that no
+longer comes.
+
 Stubbing the input port in an adapter test is not the mistake the next section warns about: there the adapter
 under test is replaced by a stub of its own port; here the adapter is the unit under test, and the use case behind
 the port has a test of its own.
