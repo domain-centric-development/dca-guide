@@ -814,16 +814,18 @@ stay when a width moves.
 
 A person acts on the factory in one of two ways. In a session they talk to an agent, which runs the skill at once
 and asks back in the chat. Without one — from a browser, a terminal, a tool that has no view of its own — they
-write a **request**: one file that says what they want, checked when it is written, worked by the factory before
-its next story. The factory then is a process of its own, started once (`up`) and ended between two stages
-(`down`); a page on the same machine shows its views and turns every press into a request.
+write a **request**: one file that says what they want, checked when it is written, and worked by the factory at
+once. The factory then is a process of its own: a page on the same machine shows its views, turns every press into
+a request and keeps the factory working them while it is open — a story that runs never holds a request up, and a
+story asked to run now takes the next free place before the backlog. Working the backlog off on its own is
+separate: `up` turns it on, `down` off, and nothing else stops with it.
 
 | | In a session | Through a request |
 |---|---|---|
 | who acts | the session's agent, in the chat | the factory, headless, with the tool the project names |
-| when | at once | before the next story, between the stages of a running one |
+| when | at once | at once, beside any story that runs |
 | asking back | in the chat | as a decision record |
-| needs | an open session | the factory up |
+| needs | an open session | the page open, or the backlog on (`up`) |
 
 A request runs the skill a session would run, with the same words: a wish, a release, an answer, an acceptance, a
 correction, a change to the description, a discovery. What the session gets from the person — the confirmation of
