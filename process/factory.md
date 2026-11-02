@@ -830,6 +830,11 @@ a request and keeps the factory working them while it is open — a story that r
 story asked to run now takes the next free place before the backlog. Working the backlog off on its own is
 separate: `up` turns it on, `down` off, and nothing else stops with it.
 
+The page opens on where the factory stands: the cycle's four steps side by side, each with its count, the one item
+that matters most there and the one thing to do about it — which item, the factory decides. Under them sits the
+wish, and under the wish what became of each: written, asking back, failed, or the draft it became — a story, a
+task, a finding settled —, until that draft is released.
+
 | | In a session | Through a request |
 |---|---|---|
 | who acts | the session's agent, in the chat | the factory, headless, with the tool the project names |
