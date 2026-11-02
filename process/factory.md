@@ -46,7 +46,7 @@ product/                   what is to be built and what holds (people write it; 
   overview.md              what, for whom, surfaces, qualities, what it is not
   tech.md                  stack, frontend approach, persistence, runtime, integrations, version policy
   domain.md                the designed cut: contexts, subdomain types, relationships and why
-  spec/                    what holds: per context its scenarios and its glossary, and the journeys
+  spec/                    what holds: per context its scenarios and its glossary, the shared kernel's glossary, the journeys
   epics/<epic>/            the changes: the epic, its stories, and beside each story its decisions
   discovery/<topic>/       research and proposed epics
 .agents/factory/           the installed pipeline (checks, runner) — replaced whole by an update

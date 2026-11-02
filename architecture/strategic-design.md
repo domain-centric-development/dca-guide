@@ -263,6 +263,12 @@ logged in.
 - Changes to Shared Kernel affect all contexts - coordinate carefully
 - Only include code that has **identical meaning** across all contexts
 - When in doubt, duplicate rather than share
+
+**Its words are written once, like a context's.** The shared kernel has a glossary of its own beside the contexts'
+(`spec/shared-kernel/glossary.md` where the description keeps its spec), in the same form — each term with its type,
+its definition and, for an id, whose identity it is. It is not a context: it has no subdomain, no features and no
+scenarios of its own. A context's glossary names a shared term where the context uses it — an aggregate's
+`**Identity:**` line names its shared id — and does not define it again.
 - Use versioning if Shared Kernel becomes a separate module
 
 **Decision Tree: Should This Go in Shared Kernel?**
