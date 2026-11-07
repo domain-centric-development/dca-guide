@@ -253,6 +253,14 @@ adapter behind it does. Nothing above this line depends on the answer.
 - Authorization ("may *this caller* do this?") is decided in the use case; the caller arrives as a field of the Command/Query, resolved by the incoming adapter through the identity output port
 - A use case that acts on a caller's resource asks the repository a scoped question (`findByIdForCustomer`), never an open lookup followed by a comparison
 - A claims-only gate (a role on the token) may sit in the incoming adapter — it reads nothing but the caller
+- Say the claims-only gate declaratively, on the route, in the framework's own form: an authorization annotation or
+  attribute on the handler (`@PreAuthorize`, `@RolesAllowed`, `[Authorize(Roles = …)]`), or — where the stack has no
+  annotations — an extractor in the handler's signature or a layer on its route. A branch on the caller's role inside
+  the handler hides the gate from whoever reads the route and renders whatever status the branch writes, where the
+  framework would tell an unauthenticated from an unauthorized caller. The project adds no marker of its own beside
+  the framework's: the framework's declaration is the declaration. `DCA-HEX-020` (experimental, informational) lists
+  an incoming adapter that asks for the caller's roles in its own code. The split is by input: a check that needs
+  nothing but the caller sits on the route; a check that needs the stored data — is this yours? — is the use case's
 - The domain never knows the caller: no `User` parameter on aggregate methods, no role checks in domain code — invariants only
 - The identity port is a project-specific output port in `application/shared/` (context or shared kernel), implemented in the authenticating context's outgoing adapter; the authentication filter enriches every request and gates none
 - A use case with no caller (event consumers, scheduled work) checks no caller, but it still loads an owned aggregate
