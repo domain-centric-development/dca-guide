@@ -681,10 +681,12 @@ fail, "is there one?" cannot.
 This section and the next two show the returned form; the throwing form is the one the sections above describe,
 and the differences are named where they arise.
 
-The input port returns `<Operation>Result`. When the operation has an expected refusal, the result is sealed: one
-success case, named for what happened (`Cancelled`, `Placed`, `Found`), and one case per refusal, named after the
-refusal (`OrderNotFound`, `OrderAlreadyShipped`). The cases are nested in the result and carry ids and figures. An
-operation without an expected refusal keeps a plain result record.
+The input port returns `<Operation>Result`. When the operation can end in more than one way, the result is sealed:
+one case per outcome. A success case is named for what happened (`Cancelled`, `Placed`, `Found`), a refusal case
+after the refusal (`OrderNotFound`, `OrderAlreadyShipped`). The cases are nested in the result and carry ids and
+figures. Not every outcome is a refusal: a reminder that was `Sent` or `AlreadySent`, a merge that `Merged` or found
+`NothingToMerge`, ends in two successes, and that alone is reason enough for a sealed result. An operation with one
+outcome keeps a plain result record.
 
 ```java
 // order/application/cancelorder/CancelOrderResult.java
@@ -916,7 +918,7 @@ its state clean on a stop keeps its steps inside one transaction, which the stop
 | `DCA-ERR-005` | Domain and port exception names must stay in the language of their layer |
 | `DCA-ERR-006` | Diagnostic: incoming adapter packages that drive a use case without translating its failures |
 | `DCA-ERR-007` | Diagnostic: failures that carry display data or objects instead of ids and figures |
-| `DCA-ERR-008` | A closed use-case result must have at least one case marked as a refusal (experimental) |
+| `DCA-ERR-008` | Diagnostic: closed use-case results without a case marked as a refusal (experimental) |
 
 `DCA-ERR-004` is why the handler above carries the status and the exception does not: `@ResponseStatus` on a
 domain exception is the adapter's decision taken in the domain layer. `DCA-ERR-005` forbids the simple-name
@@ -932,9 +934,12 @@ In a context that returns results, the compiler holds what `DCA-ERR-006` can onl
 case does not compile. The diagnostic reads the exception channel only, so an adapter that answers every refusal
 by a switch and names neither base type appears on its list. The entry's answer is then the switch.
 
-`DCA-ERR-008` holds the rollback net in place: a closed result whose refusal cases are not marked would commit
-where a thrown refusal rolled back. A closed result without any refusal case is a plain result and should be
-written as one.
+A closed result describes the outcomes of an operation; some are refusals, some are not. `Sent | AlreadySent` holds
+no refusal and needs none: marking `AlreadySent` would roll back a success. Whether a case refuses is domain
+knowledge the type does not show, so `DCA-ERR-008` lists every closed result without a case marked `Refusal` and
+never fails. Each entry asks one question: is none of these outcomes a refusal? If one is, it carries the marker,
+or the transaction commits where a thrown refusal rolled back. The marker says "refused" with or without a
+transaction — a read-only use case refuses too; the rollback acts only where something was written.
 
 ## TRANSACTION RULES
 

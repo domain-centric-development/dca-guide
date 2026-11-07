@@ -1184,13 +1184,17 @@ The catalog states these as `DCA-ERR-001` … `DCA-ERR-005`, plus `DCA-ERR-003` 
 base type: an exception declared in an application package extends `UseCaseException`, and a `DomainException`
 subtype declared there is reported too, because a failure of the model belongs to the model.
 
-`DCA-ERR-006` is the one diagnostic in the set. It lists incoming adapter packages that drive an input port and
+`DCA-ERR-006` is one of the set's diagnostics. It lists incoming adapter packages that drive an input port and
 name neither base type, and it never fails the build. That is as far as static analysis reaches: **a `throw` and
 a `catch` are not part of the import model.** Whether a specific refusal should have been a domain exception,
 and whether an adapter catches `Exception` around a use-case call, no rule can decide. A package on the
 diagnostic's list is not a finding by itself — an event consumer whose failed reaction belongs to the delivery
 machinery's retry is a good answer — but each entry should have one. An adapter that answers every refusal by a
 switch over a sealed result names neither base type either, and appears on the list; its answer is the switch.
+
+`DCA-ERR-008` is a diagnostic for the same reason: it lists every sealed result with no case marked `Refusal`.
+A sealed result of successes alone — `Sent | AlreadySent` — is correct and stays on the list with that answer;
+one whose refusing case is unmarked would commit where a thrown refusal rolled back, and its answer is the marker.
 
 ---
 

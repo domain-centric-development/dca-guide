@@ -178,7 +178,9 @@ carry, who assembles it and how big it should be — follows seven sentences.
 
 In a context that returns its refusals, an operation that can be refused returns a sealed result: a success case
 named for what happened and one case per expected refusal. The sentences above hold for every case of it. A context
-that throws its refusals keeps a plain result and raises a use-case exception instead. The choice and what each form
+that throws its refusals keeps a plain result and raises a use-case exception instead. In either context, an
+operation that ends in several successes — `Sent` or `AlreadySent` — may seal its result for those alone; none of
+its cases is a refusal, and none carries the marker. The choice and what each form
 costs are in [An expected refusal, thrown or returned](./rules.md#an-expected-refusal-thrown-or-returned).
 
 **Snapshot as the result field:**
@@ -320,7 +322,8 @@ public abstract class OutputPortException extends PortException {
 }
 
 public interface Refusal {
-    // Marker for a refusal case of a sealed use-case result; the transaction boundary rolls back on it
+    // Marker for a refusal case of a sealed use-case result; the transaction boundary rolls back on it.
+    // A success case never carries it, and a sealed result of successes alone has none.
 }
 ```
 
