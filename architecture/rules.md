@@ -255,7 +255,11 @@ adapter behind it does. Nothing above this line depends on the answer.
 - A claims-only gate (a role on the token) may sit in the incoming adapter — it reads nothing but the caller
 - The domain never knows the caller: no `User` parameter on aggregate methods, no role checks in domain code — invariants only
 - The identity port is a project-specific output port in `application/shared/` (context or shared kernel), implemented in the authenticating context's outgoing adapter; the authentication filter enriches every request and gates none
-- A use case with no caller (event consumers, scheduled work) stays unscoped and documents it
+- A use case with no caller (event consumers, scheduled work) checks no caller, but it still loads an owned aggregate
+  through the owner its trigger names — an event that asks for an effect on somebody's aggregate carries whose it is.
+  Only a path that holds no owner to name uses the unscoped lookup, and documents it
+- Ownership is the data-dependent half of authorization ("is this yours?"): it needs the stored aggregate, so it is
+  the use case's, never a route annotation's — see *Owned aggregates* below
 
 ### Input Port Rules
 - Input Port defines use case interface
@@ -304,6 +308,29 @@ re-reading it must not replay what the writer already published.
 
 Keep the adapters honest with a **contract test on the port** that every implementation runs,
 including the assertion that an unsaved mutation is invisible to the next reader.
+
+#### Owned aggregates
+
+An aggregate that belongs to someone — a patient's record, a tenant's workspace, a visitor's draft — implements
+`Owned<OwnerId>` (`IOwned<TOwnerId>` in C#, `impl Owned { type OwnerId = … }` in Rust), the type argument naming the
+owner's id type. Its repository then declares a lookup by the aggregate's id **and** the owner's id —
+`findByIdForOwner(id, ownerId)`, named in the context's language — and every use case acting for a caller loads the
+aggregate through it. An object loaded by its id alone is reachable by anyone who knows or guesses the id: the
+insecure direct object reference of broken access control, OWASP Top 10 **A01**. `DCA-TAC-026` (experimental) checks
+the repository side — an owned aggregate whose repository offers only `findById` fails; whether the use case calls the
+scoped lookup is a review question, and an aggregate nobody marked is not selected at all.
+
+- **The owner may change, but only explicitly.** `Owned` says "has an owner", not "always the same owner". A
+  visitor's draft taken over by the account they sign into changes owner through an operation of the aggregate
+  (`takeOverBy(account)`), called after the use case proved the caller's right to it — for example that the guest
+  identity named in the signed token is the draft's owner. That proof is use-case logic no marker can verify; its
+  tests prove it. Before and after the change, both aggregates are found through their owner.
+- **A guest is an owner.** A visitor given a pseudonymous identity on the first request owns what they create; the
+  scoped lookup works the same for them. The identity is safe when it comes from a signed token and is not guessable —
+  never a value the client names. Registering keeps the identity, so nothing moves.
+- **Where `Owned` does not fit.** A system without any identity for guests, where the aggregate's id itself is the
+  secret — a long random id in a link, "whoever holds it may" — has no owner to scope a lookup by. Such an aggregate is
+  not `Owned`; its safety is the id's unguessability, and that is a deliberate choice, not an omission.
 
 ### Transaction Rules
 - One transaction per use case execution

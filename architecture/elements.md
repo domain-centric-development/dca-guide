@@ -7,6 +7,8 @@
 - **Value Object** - Immutable object without identity
 - **Aggregate** - Transactional consistency boundary
 - **Aggregate Root** - Entry point entity for aggregate access
+- **Owned** - An aggregate root that belongs to someone: its repository looks it up by its id and the owner's id
+  (see *Owned aggregates* in the rules)
 - **Domain Service** - Stateless operation on domain objects
 - **Domain Event** - Immutable record of domain occurrence (internal to bounded context)
 - **Specification** - Encapsulated business rule
@@ -297,6 +299,11 @@ public interface AggregateRoot<T extends AggregateRoot<T, ID>, ID extends Id>
     // Marker interface - identifies aggregate roots for all contexts
 }
 
+public interface Owned<OWNER extends Id> {
+    // Marker for an aggregate root that belongs to someone; OWNER is the owner's id type.
+    // Its repository declares a lookup by the aggregate's id and the owner's id (DCA-TAC-026).
+}
+
 public abstract class DomainException extends RuntimeException {
     // Base of every business-rule violation the model raises; carries no code and no status
 }
@@ -333,6 +340,7 @@ public interface IId { }
 public interface IEntity<TSelf, TId> : IEntity where TSelf : IEntity<TSelf, TId> where TId : IId { TId Id { get; } }
 public interface IAggregateRoot<TSelf, TId> : IEntity<TSelf, TId>, IAggregateRoot
     where TSelf : IAggregateRoot<TSelf, TId> where TId : IId { }
+public interface IOwned<TOwnerId> : IOwned where TOwnerId : IId { }   // IOwned: the non-generic base the rules select on
 public abstract class DomainException : Exception { }
 
 // DomainCentric.BuildingBlocks.Application
