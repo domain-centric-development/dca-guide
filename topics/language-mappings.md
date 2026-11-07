@@ -71,7 +71,10 @@ The tactical markers, one to one. Java package `ddd.tactical`, .NET namespace `D
 | Factory | `Factory` | `IFactory` |
 | Specification | `Specification<T>` (`isSatisfiedBy`) | `ISpecification<T>` (`IsSatisfiedBy`) |
 | Domain failure | `DomainException` (`ddd.tactical`) | `DomainException` (`Ddd.Tactical`) |
-| Use-case failure | `UseCaseException` (`application`) | `UseCaseException` (`Application`) |
+| Port failure (abstract) | `PortException`, `InputPortException` (`application`) | `PortException`, `InputPortException` (`Application`) |
+| Use-case failure | `UseCaseException` (`application`), under `InputPortException` | `UseCaseException` (`Application`), under `InputPortException` |
+| Output-port failure | `OutputPortException` (`application`) | `OutputPortException` (`Application`) |
+| Refusal case marker | `Refusal` | `IRefusal` |
 | Timestamps, ids | `java.time.Instant`, `java.util.UUID` | `DateTimeOffset`, `Guid` |
 | Absence | `Optional<T>` | nullable reference `T?` |
 
@@ -101,6 +104,7 @@ enforces both).
 | Use case input port | `PlaceOrderInputPort extends UseCase<PlaceOrderCommand, PlaceOrderResult>` | `IPlaceOrderInputPort : IUseCase<PlaceOrderCommand, PlaceOrderResult>` |
 | Use case implementation | `PlaceOrderUseCase implements PlaceOrderInputPort` (`@Service`) | `PlaceOrderUseCase : IPlaceOrderInputPort` (plain class, registered in DI) |
 | Command / Query / Result | `record` | `sealed record` |
+| Result with expected refusals (a context that returns them) | `sealed interface` with nested `record` cases, each refusal case `implements Refusal`; adapter `switch` without `default` | closed union: OneOf `OneOfBase<…>` (`[GenerateOneOf]`) with nested `sealed record` cases, each refusal case `: IRefusal`, adapter `Match` — exhaustive by arity; C# 15 `union` with `switch` once released |
 | Output port marker | `OutputPort` | `IOutputPort` |
 | Repository | `Repository<T, ID>` — `findById`, `save`, `deleteById` | `IRepository<TAggregate, TId>` — `FindByIdAsync`, `SaveAsync`, `DeleteByIdAsync` |
 | Store | `Store` | `IStore` |

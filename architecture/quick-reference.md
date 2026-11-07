@@ -15,8 +15,11 @@ entry is stated in full elsewhere in this guide; nothing here is a rule of its o
 | Use-case implementations | Application — the use-case package | `CreateOrderUseCase` |
 | Commands, Queries, Results | Application — the use-case package | `CreateOrderCommand`, `CreateOrderResult` |
 | Output Ports | Application — the use-case package, or `application/shared` when reused | `OrderRepository`, `LoginProtectionStore` |
-| Use-case exceptions | Application — beside the use case, or `application/shared` when reused or declared by a port | `OrderNotFoundException` |
-| Exception handlers | `adapter/incoming` — one per context | `OrderApiExceptionHandler` |
+| Expected refusals | Application — cases nested in the use case's sealed `*Result`, or use-case exceptions beside the use case; one way per context | `CancelOrderResult.OrderNotFound`, `OrderNotFoundException` |
+| Use-case exceptions (extend `UseCaseException`) | Application — beside the use case, or `application/shared` when reused | `PaymentProviderUnavailableException` |
+| Output-port exceptions (extend `OutputPortException`) | Application — beside the port whose contract declares them | `DuplicateOrderNumberException`, `PaymentGatewayUnavailableException` |
+| Answers to result cases | `adapter/incoming` — written once per context, called from each switch (a returning context) | `OrderProblems` |
+| Exception handlers | `adapter/incoming` — one per context, for what is thrown | `OrderApiExceptionHandler` |
 | REST controllers | `adapter/incoming` | `OrderRestController` |
 | Message listeners | `adapter/incoming` | `OrderCommandListener` |
 | Persistence adapters, ORM entities | `adapter/outgoing` | `JpaOrderRepository`, `OrderEntity` |
@@ -82,6 +85,13 @@ Shared kernel  | its domain: never       | @Nullable, own annotations
 - [ ] Does infrastructure do nothing but wiring and configuration?
 - [ ] Can the domain and the application layer be tested without a framework?
 - [ ] Does each business rule refuse with its own named failure, and each argument guard with the platform's argument exception?
-- [ ] Does exactly one place per context turn a failure into a protocol answer?
+- [ ] Does every use case of the context carry its expected refusals the same way — all thrown, or all returned as cases — and is the choice recorded in the project's technical description (`Refusals: thrown | returned`, or `Refusals (<context>): …` for a context that departs)?
+- [ ] Where the context returns: does every switch over a result name each case, without a `default`, and does each refusal case carry `Refusal`?
+- [ ] Is each refusal's answer written once per context — in the class the switches call, or in the context's one exception handler?
+- [ ] Does every refusal come before the first write?
+- [ ] Does a failure an output port declares extend `OutputPortException`, thrown by its adapter and caught by the use case — and does a concrete use-case failure extend `UseCaseException`, never `InputPortException`?
+- [ ] Does a failure of the system's own infrastructure — its database, its broker — stay the platform's exception, and is the expected failure of a foreign system (an external system on the context map) declared by its port as an `OutputPortException` and answered by the use case as a refusal?
+- [ ] Does a "which one, if any" query answer *none* with an empty value, and is "not found" a refusal only where the caller names a specific thing?
+- [ ] Does no incoming adapter catch `PortException` or `InputPortException` generically?
 - [ ] Is each rule on input checked once, in its value object — a missing value refused there too, no annotation or default repeating it at the adapter?
 - [ ] Are the words a person reads the adapter's, made from the failure's values — never the exception's message?

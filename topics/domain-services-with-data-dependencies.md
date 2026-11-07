@@ -43,7 +43,8 @@ public class CalculateBundleDiscountUseCase implements CalculateBundleDiscountIn
     public DiscountResult execute(DiscountCommand command) {
         ProductPrice productPrice = productPriceRepository
             .findByProductId(command.productId())
-            .orElseThrow();
+            .orElseThrow(() -> new ProductPriceNotFoundException(command.productId()));
+            // an expected refusal: thrown here; a case of a sealed result where the context returns them
 
         // The Domain Service receives all data as parameters — pure, testable, simple
         Price discountedPrice = bundleDiscountService.calculateBundleDiscount(

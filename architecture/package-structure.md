@@ -161,8 +161,9 @@ checkout/
 4. **`application/shared` stays context-wide.** Repository and Store interfaces continue to live there
    (`DCA-TAC-014`, `DCA-TAC-019`); there is no `application/{feature}/shared`. A port used by one use case stays
    with that use case, a port used by several belongs in `application/shared`. The same applies to a use-case
-   exception: it stays with its use case, and moves to `application/shared` when several use cases raise it or
-   a port declares it.
+   exception: it stays with its use case, and moves to `application/shared` when several use cases raise it. An
+   output-port exception sits beside the port that declares it. In a context that returns its refusals, an expected refusal has no file of its own: it is a
+   case nested in its use case's result.
 5. **The domain is organised by concept, not mirrored by feature.** Aggregates and value objects belong to the
    bounded context and may serve several features — a feature owns no aggregate.
 6. **Incoming adapters mirror the features *below* their protocol:** `adapter/incoming/web/{feature}`,
@@ -232,8 +233,8 @@ com.company.project
 │   │   │   ├── CreateOrderUseCase.java
 │   │   │   │   @Service class CreateOrderUseCase implements CreateOrderInputPort { }
 │   │   │   ├── CreateOrderCommand.java
-│   │   │   ├── CreateOrderResult.java
-│   │   │   └── CustomerNotActiveException.java (Use-Case Exception)
+│   │   │   ├── CreateOrderResult.java (returning context: sealed, Created | CustomerNotActive)
+│   │   │   └── CustomerNotActiveException.java (throwing context: Use-Case Exception, plain CreateOrderResult)
 │   │   │
 │   │   ├── findorder/ (use case folder - lowercase, contains ALL related files)
 │   │   │   ├── FindOrderInputPort.java
@@ -260,7 +261,7 @@ com.company.project
 │   │   │   └── UpdateOrderResult.java
 │   │   │
 │   │   └── shared/ (SHARED OUTPUT PORTS - infrastructure dependencies)
-│   │       ├── DuplicateOrderNumberException.java (Use-Case Exception - declared by the repository)
+│   │       ├── DuplicateOrderNumberException.java (Output-Port Exception - declared by the repository, thrown by its adapter, caught by the use case)
 │   │       ├── OrderRepository.java (Output Port)
 │   │       ├── PaymentGateway.java (Output Port)
 │   │       ├── InventoryService.java (Output Port)
@@ -449,6 +450,8 @@ APPLICATION LAYER
 - **Commands**: `*Command` (e.g., `CreateOrderCommand`)
 - **Queries**: `*Query` (e.g., `OrderQuery`)
 - **Results**: `*Result` (e.g., `CreateOrderResult`) — top level only; part records nested in the result are named by content (`CartItemSummary`, `LineItemData`, `ProfileView`), never `*Result`
+- **Failures**: a domain exception extends `DomainException`, a use-case exception `UseCaseException`, a failure an output port declares `OutputPortException` — never `PortException` or `InputPortException` directly; the name is the broken rule, the suffix the project's (`Exception` by default)
+- **Result cases** (a context that returns its refusals): nested in a sealed `*Result` — the success case named for what happened (`Created`, `Cancelled`), each refusal named after the refusal (`CustomerNotActive`, `OrderNotFound`) and marked `Refusal`; no `Exception` suffix and no `*Exception` file for an expected refusal. A context that throws names the same refusal `CustomerNotActiveException`
 - **Assemblers**: `*Assembler` when result assembly outgrows a static factory or is shared by several use cases (e.g., `ProductArticleAssembler` in `application/shared`) — never `*Mapper`, `*Converter` or `*Helper` in the application layer
 - **Adapters**: `*Adapter` or specific suffixes (e.g., `InMemoryOrderRepository`, `OrderPageController`, `OrderMcpToolProvider`)
 - **Host-language spelling**: marker and port names follow the host language's convention — Java `AggregateRoot`, `UseCase<I, O>`, `OrderRepository`; C# `IAggregateRoot`, `IUseCase<TIn, TOut>`, `IOrderRepository` with `ExecuteAsync`/`FindByIdAsync`. The roles, folders and rule ids are the same; see [Language Mappings](../topics/language-mappings.md)

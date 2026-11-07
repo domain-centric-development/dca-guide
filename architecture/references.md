@@ -189,6 +189,12 @@ a deviation from Evans and Vernon.
 **Aggregates:**
 - **[Effective Aggregate Design](https://www.dddcommunity.org/library/vernon_2011/)** by Vaughn Vernon (3-part series)
 
+**Results and exceptions:**
+- **[Against Railway-Oriented Programming](https://fsharpforfunandprofit.com/posts/against-railway-oriented-programming/)** by Scott Wlaschin
+  - The author of railway-oriented programming on where it stops: results for what the domain models and a
+    caller handles, exceptions for what nobody handles where it happens
+  - The cut DCA draws between a returned refusal and a thrown failure
+
 ## Acknowledgments
 
 Domain-Centric Architecture stands on the shoulders of giants. Special recognition to:

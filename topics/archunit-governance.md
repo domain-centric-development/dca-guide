@@ -1137,8 +1137,11 @@ static <T extends Annotation> List<T> packageAnnotations(String packageName, Cla
 ### 9. Error Handling Rules
 
 A failure of an inner layer has its own type, and the type says which layer owns the failure: a broken rule of
-the model extends `DomainException`, a request the application cannot serve extends `UseCaseException`. Both
-base types come from the building blocks, so a rule can select on them.
+the model extends `DomainException`, a failure a use case throws extends `UseCaseException`, a failure an output
+port declares extends `OutputPortException`. The base types come from the building blocks, so a rule can select
+on them. An expected refusal returned as a case
+of a sealed result is no exception, and these rules do not select it; the compiler checks that every switch
+answers it.
 
 ```java
 // Every exception the domain layer declares extends the model's base type. Catalog: DCA-ERR-001.
@@ -1186,7 +1189,8 @@ name neither base type, and it never fails the build. That is as far as static a
 a `catch` are not part of the import model.** Whether a specific refusal should have been a domain exception,
 and whether an adapter catches `Exception` around a use-case call, no rule can decide. A package on the
 diagnostic's list is not a finding by itself — an event consumer whose failed reaction belongs to the delivery
-machinery's retry is a good answer — but each entry should have one.
+machinery's retry is a good answer — but each entry should have one. An adapter that answers every refusal by a
+switch over a sealed result names neither base type either, and appears on the list; its answer is the switch.
 
 ---
 

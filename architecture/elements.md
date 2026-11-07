@@ -28,8 +28,9 @@ The application layer organizes business operations using a structured **Use Cas
 - **Use Case** - Implements business operation (orchestrates domain objects)
 - **Input Port** - Interface defining use case contract (`extends UseCase<INPUT, OUTPUT>`)
 - **Command/Query** - Input model (Command for writes, Query for reads)
-- **Result** - Output model (standardized return type)
-- **Use-Case Exception** - A request the use case cannot serve, named by what it could not get hold of
+- **Result** - Output model (standardized return type); where the context returns its refusals, sealed, with a success case and one case per expected refusal, when the operation can be refused
+- **Use-Case Exception** - A failure a use case throws (`UseCaseException`, under `InputPortException`): an expected refusal where the context throws its refusals
+- **Output-Port Exception** - A failure an output port's contract declares (`OutputPortException`), thrown by its adapter and caught by the use case — an expected conflict the store sees, or a foreign system behind the port that refused or did not answer; never a failure of the system's own infrastructure
 - **Output Port** - Interface for a capability the application needs but does not own (repositories, other contexts, external systems, publishers, the caller's identity)
 
 **Organization:**
@@ -175,6 +176,11 @@ carry, who assembles it and how big it should be — follows seven sentences.
    Mediator/double-dispatch rendering are not taken, also for in-process UIs — see
    [Deviations from the literature](../README.md#deviations-from-the-literature).
 
+In a context that returns its refusals, an operation that can be refused returns a sealed result: a success case
+named for what happened and one case per expected refusal. The sentences above hold for every case of it. A context
+that throws its refusals keeps a plain result and raises a use-case exception instead. The choice and what each form
+costs are in [An expected refusal, thrown or returned](./rules.md#an-expected-refusal-thrown-or-returned).
+
 **Snapshot as the result field:**
 ```java
 // domain/readmodel — a Value built from the aggregate, no identity of its own
@@ -295,9 +301,26 @@ public abstract class DomainException extends RuntimeException {
 ```
 
 ```java
-// dev.domaincentric.dca.buildingblocks.application — the failure channel of the layer above
-public abstract class UseCaseException extends RuntimeException {
-    // Base of every use-case failure the application layer reports to its callers
+// dev.domaincentric.dca.buildingblocks.application — the failures a port's contract declares
+public abstract class PortException extends RuntimeException { }
+
+public abstract class InputPortException extends PortException {
+    // Declared by an input port, caught by its caller; never extended directly
+}
+
+public abstract class UseCaseException extends InputPortException {
+    // Thrown only by a use case: an expected refusal where the context throws its refusals.
+    // Concrete use-case failures extend this.
+}
+
+public abstract class OutputPortException extends PortException {
+    // Declared by an output port's contract, thrown by its adapter, caught by the use case:
+    // an expected conflict the store sees, or a foreign system that refused or did not answer.
+    // A failure of the system's own infrastructure is not one.
+}
+
+public interface Refusal {
+    // Marker for a refusal case of a sealed use-case result; the transaction boundary rolls back on it
 }
 ```
 
@@ -310,7 +333,11 @@ public interface IAggregateRoot<TSelf, TId> : IEntity<TSelf, TId>, IAggregateRoo
 public abstract class DomainException : Exception { }
 
 // DomainCentric.BuildingBlocks.Application
-public abstract class UseCaseException : Exception { }
+public abstract class PortException : Exception { }
+public abstract class InputPortException : PortException { }
+public abstract class UseCaseException : InputPortException { }
+public abstract class OutputPortException : PortException { }
+public interface IRefusal { }
 ```
 
 **The port hierarchy, as the library defines it — and how a context uses it:**
