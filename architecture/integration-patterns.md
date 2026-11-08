@@ -181,6 +181,11 @@ public class ProductCatalogService {
 
 **Important:** Like an incoming adapter, the OHS calls **use cases (input ports)**, not repositories directly.
 
+Where the published contract is a package of functions rather than a class — the usual shape of a Python
+`api` package — the package carries the marker itself: `__dca__ = OpenHostService()` in its `__init__.py`,
+the way a context declares itself. Java and .NET put the marker on the class. Either way the rule that
+places an Open Host Service (`DCA-STR-005`) sees it; without a marker it sees nothing to place.
+
 ### Consumer: Output Port + Adapter (Same for Both)
 
 The consumer-side pattern is **identical** regardless of transport:
