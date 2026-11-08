@@ -66,7 +66,10 @@
   ```
 
   `setCompleted(true)` would let the caller set the state instead of triggering the behaviour, so no domain method
-  takes a `boolean`, and nothing outside sets the field. A `boolean` returned is a question to the object and fine,
+  takes a `boolean`, and nothing outside sets the field. The one exception is the factory that rebuilds a stored
+  aggregate — `reconstitute(...)`, or `restore(...)`: it hands the stored fact back to the type that holds it and
+  triggers nothing, so it takes the `boolean` as it was stored. The rule recognises that factory by its name; a
+  project that names it otherwise configures its own. A `boolean` returned is a question to the object and fine,
   though an aggregate is told what to do rather than asked and then decided about from outside. Three or more
   states, or transitions with rules of their own, are an enum or a value. Facts that hold independently — completed,
   archived, deleted — are separate fields, never one status. A project's glossary may decide otherwise; then the
@@ -94,6 +97,13 @@
 - Domain Service operates in domain language
 - Domain Service is part of domain layer
 - No dependencies on application or outer layers
+- **A domain service is used by the application and by other domain services only.** The use case calls it
+  and carries its outcome in the result. An aggregate, an entity or a value does not call it, nor does a read
+  model, an adapter of either direction or the composition root — the composition root only constructs it and
+  hands it to a use case. A read model computes on query through the aggregate and its values, never through a
+  domain service: a decision belongs to the aggregate, or to the use case that asks the service
+  (`DCA-ADV-021`, experimental; `DCA-ADV-019` holds the model's part of it, `DCA-HEX-012` the incoming
+  adapter's)
 
 ### Domain Event Rules (Internal to Bounded Context)
 - Domain Events are immutable

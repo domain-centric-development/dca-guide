@@ -122,6 +122,7 @@ DcaLayout.forBasePackage("com.company.project")
     .withUseCaseSuffix("ApplicationService")
     .withControllerSuffix("Page")
     .withTimestampTypes("com.company.platform.Timestamp")   // what a domain event stores its time in
+    .withReconstitutingFactories("rehydrate")      // the factory that rebuilds a stored aggregate
     .allowingInDomain("org.jmolecules..")         // extra third-party packages tolerated in the domain
     .withFrameworkAnnotations(FrameworkAnnotations.jakarta());   // default: spring()
 ```

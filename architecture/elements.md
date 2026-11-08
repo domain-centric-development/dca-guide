@@ -173,7 +173,7 @@ carry, who assembles it and how big it should be — follows seven sentences.
    behaviour: it translates external input into a `Command`/`Query` and calls an input port. Outgoing adapters
    are different: a repository or persistence adapter necessarily maps, constructs and reconstitutes domain
    objects while implementing an output port. That mapping may restore state; it must not make new business
-   decisions.
+   decisions, and it calls no domain service (`DCA-ADV-021`).
 7. **One model for every adapter.** Vernon's Domain Payload Object (handing whole aggregates to the UI) and the
    Mediator/double-dispatch rendering are not taken, also for in-process UIs — see
    [Deviations from the literature](../README.md#deviations-from-the-literature).
