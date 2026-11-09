@@ -86,6 +86,13 @@
 - Eventual consistency between aggregates
 - Delete aggregate deletes all contained entities
 - Never inject repositories or remote services into aggregates. Use cases retrieve facts; domain services calculate over supplied snapshots. A callback parameter does not make external-data responsibility belong on the aggregate.
+- Every change of state is a method of the root, named after what it means (`complete()`, `reopen()`). No adapter
+  writes a lifecycle field — a status, a delivered flag, an applied mark — straight into storage: such a change has no
+  guard and raises no event, and the state now has two ways in. The repository's adapter writes only what the
+  aggregate holds. A store whose port takes a status to set is the same lifecycle without its aggregate
+- A decision asks the aggregate. A copy of its state — a read model, a list of accepted words, a prefix check on a
+  stored field — answers for display only and never decides: it decides the same thing a second time and drifts
+  from the aggregate the first time a rule changes
 - Two factories, two purposes: `create(...)` enforces creation invariants and registers the creation event; `reconstitute(...)` rebuilds a stored aggregate from persisted state and registers nothing. Persistence adapters use only the latter — rebuilding through `create` publishes a phantom creation on the next save
 - Domain events leave the aggregate through one call, `DomainEventPublisher.publishAndClearEvents(aggregate)`, after the save: dispatch everything, clear only when every listener returned. Iterating `domainEvents()` and calling `publish` per event is not the sanctioned form
 - Protect against lost updates with optimistic concurrency: version field on the root, incremented per state change; persistence rejects saves with a stale expected version
@@ -200,6 +207,10 @@ adapter behind it does. Nothing above this line depends on the answer.
 - ACL converts events to domain commands; it belongs to the incoming adapter, and an own
   `acl/` package there is a convention, not a rule
 - Event Consumer calls Input Port, never domain directly
+- A request is not an event. A press, a request file or a message that asks for something can be refused, can wait
+  and can fail, so it is a command: it gets a lifecycle — an aggregate, or a process manager — and its outcomes raise
+  the events. An event is a fact nobody refuses. A file or a queue as an inbox is a legitimate transport for
+  commands; the port does not change with the transport
 - Consuming bounded context maintains its own model
 - Eventual consistency between bounded contexts via events
 - Assume at-least-once delivery: consumers deduplicate per effect (the effect and the event ID, recorded in the effect's transaction) or make the operation naturally idempotent
@@ -240,6 +251,8 @@ adapter behind it does. Nothing above this line depends on the answer.
 - Use case implements Input Port interface
 - Use case orchestrates domain objects
 - Use case is thin, delegates to domain
+- A use case keeps no state between calls: what it holds is set once, by its constructor — the ports and services
+  it is wired with. A field it writes while it runs is shared by every caller of the one instance
 - Use case calls Output Ports for infrastructure
 - Use case handles transaction boundaries
 - Use case transforms DTOs to domain objects
@@ -361,6 +374,10 @@ scoped lookup is a review question, and an aggregate nobody marked is not select
 ### Input Adapter Rules
 - Input Adapter calls Input Port
 - Input Adapter uses no infrastructure (`DCA-HEX-004`) — a capability the use case needs is declared as an Output Port there; the adapter may use the identity port to resolve the caller; its own mechanics stay inside the adapter
+- A callback the framework or a pipeline calls — a listener, a scheduled job, a hook run after a step — is an
+  incoming adapter like a controller: it translates and calls an input port. It does not load an aggregate, change
+  it and save it itself; that is a use case living in the hook, out of reach of the transaction and of every other
+  caller
 - Controller extracts data from HTTP request
 - Controller creates Input Data/DTO
 - The adapter turns raw input into the types the input port takes: an id arrives in the command as the id's
@@ -401,6 +418,8 @@ scoped lookup is a review question, and an aggregate nobody marked is not select
 - Output Adapter implements Output Port
 - Output Adapter may use global and own-module infrastructure, never another module's (`DCA-HEX-005`)
 - Repository Adapter implements Repository Interface
+- An output adapter calls no method of an aggregate root that changes its state. It stores and loads what the
+  aggregate holds; a change it makes on its own bypasses the guard, the event and the use case that owns it
 - Adapter translates between domain and external world
 - Adapter contains framework-specific code
 - Adapter handles data transformation

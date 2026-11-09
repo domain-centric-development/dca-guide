@@ -1117,7 +1117,7 @@ void conformist_contract_types_never_reach_the_domain() {
 }
 ```
 
-The full set (13 rules) also verifies that declarations are well-formed (target exists, never self,
+The full set also verifies that declarations are well-formed (target exists, never self,
 unique per channel), that `@Partnership` is symmetric, that Anti-Corruption-Layer contract types stay
 inside the translating adapter, and — when Spring Modulith is used — that `@Upstream` declarations and
 `allowedDependencies` agree. A companion test renders `docs/architecture/context-map.md` (table + Mermaid) from the
