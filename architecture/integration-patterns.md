@@ -444,6 +444,7 @@ public class CheckoutCartFactory implements Factory {
             .map(item -> {
                 CheckoutArticle article = articleData.get(item.productId());
                 if (article == null) {
+                    // An argument guard, not a refusal: the use case fetched the data and handed it over
                     throw new IllegalArgumentException(
                         "Article data not found for: " + item.productId());
                 }
