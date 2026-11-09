@@ -233,13 +233,13 @@ The [dca-ecommerce-sample-java](https://github.com/domain-centric-development/dc
 
 ### Adapter Layer
 - **Incoming**: `web/`, `api/` (REST), `event/`, `mcp/` — sub-packages are the project's choice, no rule checks them. An in-process Open Host Service lives in the context's published `{context}/api/` package, not in the adapter tree
-- **Outgoing**: `persistence/` (InMemory, JPA, JDBC), plus cross-context data adapters (e.g., `inventory/`, `pricing/`, `product/`)
+- **Outgoing**: `persistence/` (JDBC; in-memory fakes in the test sources), plus cross-context data adapters (e.g., `inventory/`, `pricing/`, `product/`)
 
 ### Technology Choices
 - Java 25
 - Spring Boot 4.x
 - ArchUnit for architecture testing
-- In-memory storage for simplicity (ConcurrentHashMap)
+- PostgreSQL (JDBC, Flyway), Testcontainers in the tests
 - Model Context Protocol (MCP) server for AI tooling
 
 ## Progressive Complexity Principle

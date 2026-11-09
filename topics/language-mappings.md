@@ -214,8 +214,8 @@ Use case folders are lowercase in Java (`placeorder`) because Java packages are;
 | Web adapter | `@Controller` `*PageController`, `@RestController` `*Resource` | MVC `*PageController : Controller`, `[ApiController]` `*Resource` / `*Controller` |
 | Security context | `SecurityContextHolder` behind an `IdentityProvider` port | `HttpContext.User` behind an `IIdentityProvider` port; own `AuthenticationHandler` |
 | Validation | the value object at creation, null included; Bean Validation at the adapter edge only for a rule no value object carries | the value object at creation, null included; DataAnnotations / FluentValidation at the adapter edge only for a rule no value object carries |
-| Persistence (in-memory phase) | `ConcurrentHashMap` repository | `ConcurrentDictionary` repository |
-| Persistence (SQL) | JPA/JDBC in `adapter/outgoing/persistence/` | EF Core / Dapper in `Adapter/Outgoing/Persistence/` |
+| Persistence (in memory) | `ConcurrentHashMap` repository that stores copies — a test fake, or the first adapter before a database | `ConcurrentDictionary` repository that stores copies — a test fake, or the first adapter before a database |
+| Persistence (SQL) | JPA/JDBC in `adapter/outgoing/persistence/`, schema by Flyway | EF Core / Dapper in `Adapter/Outgoing/Persistence/`, schema by EF migrations / DbUp |
 | Build / test | Gradle, JUnit 5 | `dotnet build` / `dotnet test`, xUnit |
 
 The rules do not care which framework you register with — they check that framework types stay out of

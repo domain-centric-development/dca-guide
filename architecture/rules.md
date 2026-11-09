@@ -333,7 +333,7 @@ loading a row constructs a new object — so the in-memory adapter has been hidi
 in exactly the tests meant to catch it.
 
 Every adapter therefore maps back through the aggregate's `reconstitute` factory: the JDBC/JPA one
-because a row leaves it no choice, the in-memory one on purpose (copy on write *and* on read).
+because a row leaves it no choice, the in-memory test fake on purpose (copy on write *and* on read).
 Registered-but-unpublished domain events are not carried over — a stored aggregate is a fact, and
 re-reading it must not replay what the writer already published.
 

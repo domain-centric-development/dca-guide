@@ -289,9 +289,9 @@ com.company.project
 │       │
 │       └── outgoing/ (OUTGOING ADAPTERS - implement output ports)
 │           ├── persistence/
-│           │   ├── InMemoryOrderRepository.java (implements OrderRepository)
+│           │   ├── JdbcOrderRepository.java (implements OrderRepository)
 │           │   └── SampleDataInitializer.java (Optional: for demo data)
-│           │   # Note: For production, add JPA/JDBC adapters as needed
+│           │   # Note: an InMemoryOrderRepository that stores copies is a test fake, in the test sources
 │           ├── payment/
 │           │   ├── PaymentGatewayAdapter.java (implements PaymentGateway)
 │           │   └── dto/
@@ -453,7 +453,7 @@ APPLICATION LAYER
 - **Failures**: a domain exception extends `DomainException`, a use-case exception `UseCaseException`, a failure an output port declares `OutputPortException` — never `PortException` or `InputPortException` directly; the name is the broken rule, the suffix the project's (`Exception` by default)
 - **Result cases** (a context that returns its refusals): nested in a sealed `*Result` — the success case named for what happened (`Created`, `Cancelled`), each refusal named after the refusal (`CustomerNotActive`, `OrderNotFound`) and marked `Refusal`; no `Exception` suffix and no `*Exception` file for an expected refusal. A context that throws names the same refusal `CustomerNotActiveException`
 - **Assemblers**: `*Assembler` when result assembly outgrows a static factory or is shared by several use cases (e.g., `ProductArticleAssembler` in `application/shared`) — never `*Mapper`, `*Converter` or `*Helper` in the application layer
-- **Adapters**: `*Adapter` or specific suffixes (e.g., `InMemoryOrderRepository`, `OrderPageController`, `OrderMcpToolProvider`)
+- **Adapters**: `*Adapter` or specific suffixes (e.g., `JdbcOrderRepository`, `OrderPageController`, `OrderMcpToolProvider`)
 - **Host-language spelling**: marker and port names follow the host language's convention — Java `AggregateRoot`, `UseCase<I, O>`, `OrderRepository`; C# `IAggregateRoot`, `IUseCase<TIn, TOut>`, `IOrderRepository` with `ExecuteAsync`/`FindByIdAsync`. The roles, folders and rule ids are the same; see [Language Mappings](../topics/language-mappings.md)
 
 **Benefits:**
