@@ -18,8 +18,8 @@ what is specific to *that* application:
 ```kotlin
 // build.gradle.kts
 dependencies {
-    implementation("dev.domaincentric:dca-building-blocks:0.1.2")     // markers, ports, TransactionBoundary
-    testImplementation("dev.domaincentric:dca-archunit:0.3.0")        // the rules that select on them
+    implementation("dev.domaincentric:dca-building-blocks:0.4.0")     // markers, ports, TransactionBoundary
+    testImplementation("dev.domaincentric:dca-archunit:0.13.0")        // the rules that select on them
 }
 ```
 
@@ -28,7 +28,7 @@ dependencies {
 <dependency>
   <groupId>dev.domaincentric</groupId>
   <artifactId>dca-building-blocks</artifactId>
-  <version>0.1.2</version>
+  <version>0.4.0</version>
 </dependency>
 ```
 
@@ -110,7 +110,7 @@ defines a port itself. An application on another framework writes the two classe
 (`sharedkernel/adapter/outgoing/event/`, `sharedkernel/infrastructure/transaction/`).
 
 ```kotlin
-implementation("dev.domaincentric:dca-spring:0.1.0")
+implementation("dev.domaincentric:dca-spring:0.3.0")
 ```
 
 > **The silent failure this guards.** `spring-boot-starter` and `spring-modulith-starter-core` bring no

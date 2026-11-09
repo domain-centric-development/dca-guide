@@ -43,8 +43,8 @@ Rule of thumb: **roles, folders and rule ids are shared; names follow the host l
 
 ```kotlin
 // Gradle
-implementation("dev.domaincentric:dca-building-blocks:0.1.2")
-testImplementation("dev.domaincentric:dca-archunit:0.3.0")
+implementation("dev.domaincentric:dca-building-blocks:0.4.0")
+testImplementation("dev.domaincentric:dca-archunit:0.13.0")
 ```
 
 ```text

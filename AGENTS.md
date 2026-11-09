@@ -32,7 +32,7 @@ This is a **documentation repository** focused on Domain-Centric Architecture - 
 
 **Purpose:** Reference documentation for teams implementing domain-centric architectures in Java/Spring Boot projects — and, through `topics/language-mappings.md`, in C#/.NET. The guide is written in Java; every concept has a documented .NET spelling.
 
-**Building blocks and rules are published libraries**, not guide-owned code: Java `dev.domaincentric:dca-building-blocks` + `dca-archunit` (Maven Central), .NET `DomainCentric.BuildingBlocks` + `DomainCentric.ArchRules(.Xunit)` (NuGet). The guide shows the dependency and describes the markers; it never presents them as files to write. Versions quoted in snippets (`0.1.2` / `0.3.0`) must follow releases of `../dca-java` and `../dca-dotnet`.
+**Building blocks and rules are published libraries**, not guide-owned code: Java `dev.domaincentric:dca-building-blocks` + `dca-archunit` (Maven Central), .NET `DomainCentric.BuildingBlocks` + `DomainCentric.ArchRules(.Xunit)` (NuGet). The guide shows the dependency and describes the markers; it never presents them as files to write. Versions quoted in snippets (building blocks `0.4.0`, archunit `0.13.0`) must follow releases of `../dca-java` and `../dca-dotnet`.
 
 **Reference Implementation:** [dca-ecommerce-sample-java](https://github.com/domain-centric-development/dca-ecommerce-sample-java) - Complete working implementation demonstrating all patterns described in this documentation.
 

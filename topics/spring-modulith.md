@@ -997,8 +997,8 @@ time, so it ships in its own test artifact next to the rule catalog, `dev.domain
 Two base classes, two test classes, the same layout:
 
 ```kotlin
-testImplementation("dev.domaincentric:dca-archunit:0.3.0")
-testImplementation("dev.domaincentric:dca-archunit-spring-modulith:0.1.0")
+testImplementation("dev.domaincentric:dca-archunit:0.13.0")
+testImplementation("dev.domaincentric:dca-archunit-spring-modulith:0.2.0")
 ```
 
 ```java
